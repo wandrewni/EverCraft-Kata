@@ -36,3 +36,4 @@ gradle.properties
 # Others
 *~
 .DS_Store
+target/
