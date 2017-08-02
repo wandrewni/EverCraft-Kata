@@ -71,7 +71,16 @@ public class CharacterTest {
 		Assert.assertEquals(3, worstCharacter.hitPoints);
 	
 	}
-	
+
+	@Test
+	public void abilityScoresDefaultToTen(){
+		Assert.assertEquals(10, mainCharacter.getStrength());
+		Assert.assertEquals(10, mainCharacter.getDexterity());
+		Assert.assertEquals(10, mainCharacter.getConstitution());
+		Assert.assertEquals(10, mainCharacter.getWisdom());
+		Assert.assertEquals(10, mainCharacter.getIntelligence());
+		Assert.assertEquals(10, mainCharacter.getCharisma());
+	}
 	
 	
 }
