@@ -206,6 +206,34 @@ public class CharacterTest {
         assertHpLost(2, worstCharacter);
     }
 
+    @Test
+    public void fighterHasTenHitPointsPerLevel() throws Exception {
+        mainCharacter = new Character(CharacterClass.FIGHTER);
+        assertEquals(10, mainCharacter.getMaxHitPoints());
+        gainOneThousandXP(mainCharacter);
+        assertEquals(20, mainCharacter.getMaxHitPoints());
+        mainCharacter = new Character(CharacterClass.MONK);
+        assertEquals(5, mainCharacter.getMaxHitPoints());
+    }
+
+    @Test
+    public void fighterGetsPlusOneToAttackEachLevel() throws Exception {
+        mainCharacter = new Character(CharacterClass.FIGHTER);
+        assertUndamaged(worstCharacter);
+        mainCharacter.attack(worstCharacter, 8);
+        assertUndamaged(worstCharacter);
+        mainCharacter.attack(worstCharacter, 9);
+        assertHpLost(1, worstCharacter);
+
+        gainOneThousandXP(mainCharacter);
+        mainCharacter.attack(worstCharacter, 8);
+        assertHpLost(2, worstCharacter);
+
+        gainOneThousandXP(mainCharacter);
+        mainCharacter.attack(worstCharacter, 7);
+        assertHpLost(3, worstCharacter);
+    }
+
     private void assertXpGained(int xp, Character mainCharacter) {
         assertEquals(xp, mainCharacter.getXP());
     }

@@ -8,7 +8,7 @@ public class Character {
 	private int maxHitPoints = 5;
 	private int xp = 0;
 	private int level = 1;
-
+	private CharacterClass myClass;
 	public Character(){}
 
 	public Character(int strength, int dexterity, int constitution, int wisdom, int intelligence, int charisma) {
@@ -18,9 +18,18 @@ public class Character {
 		this.wisdom = wisdom;
 		this.intelligence = intelligence;
 		this.charisma = charisma;
-		this.hitPoints = getHitpointIncrease(constitution);
-		this.maxHitPoints = hitPoints;
+        initHitPoints();
 	}
+
+    public Character(CharacterClass characterClass) {
+	    myClass = characterClass;
+	    initHitPoints();
+    }
+
+    private void initHitPoints() {
+        this.hitPoints = getHitpointIncrease(constitution);
+        this.maxHitPoints = hitPoints;
+    }
 
     public void attack(Character opponent, int dieRoll){
 		if (dieRoll == 20) {
@@ -41,14 +50,18 @@ public class Character {
 	private void levelUp() {
 		level++;
 		hitPoints += getHitpointIncrease(constitution);
+		maxHitPoints += getHitpointIncrease(constitution);
 	}
 
     private int getHitpointIncrease(int constitution) {
-        return Math.max(5 + getModifier(constitution),1);
+        int baseHitpoints = CharacterClass.FIGHTER == myClass ? 10 : 5;
+        return Math.max(baseHitpoints + getModifier(constitution),1);
     }
 
 	private int attackModifier() {
-		return getModifier(strength) + level / 2;
+        int levelBonus = CharacterClass.FIGHTER == myClass ? level
+                : level / 2;
+        return getModifier(strength) + levelBonus;
 	}
 
 	private int baseDamage() {
