@@ -5,6 +5,7 @@ public class Character {
 	private int strength = 10, dexterity = 10, constitution = 10, wisdom = 10, intelligence = 10, charisma = 10;
 	public int baseArmorClass = 10;
 	public int hitPoints = 5;
+	private int maxHitPoints = 5;
 	private int xp = 0;
 	private int level = 1;
 
@@ -17,10 +18,11 @@ public class Character {
 		this.wisdom = wisdom;
 		this.intelligence = intelligence;
 		this.charisma = charisma;
-		this.hitPoints = Math.max(5 + getModifier(constitution),1);
+		this.hitPoints = getHitpointIncrease(constitution);
+		this.maxHitPoints = hitPoints;
 	}
 
-	public void attack(Character opponent, int dieRoll){
+    public void attack(Character opponent, int dieRoll){
 		if (dieRoll == 20) {
 			gainXp();
 			opponent.hitPoints -= Math.max(2 * baseDamage(), 1);
@@ -38,8 +40,12 @@ public class Character {
 
 	private void levelUp() {
 		level++;
-		hitPoints += 5 + getModifier(constitution);
+		hitPoints += getHitpointIncrease(constitution);
 	}
+
+    private int getHitpointIncrease(int constitution) {
+        return Math.max(5 + getModifier(constitution),1);
+    }
 
 	private int attackModifier() {
 		return getModifier(strength) + level / 2;
@@ -56,6 +62,9 @@ public class Character {
 	private int getModifier(int ability) {
 		return ability / 2 - 5;
 	}
+
+
+	/** plain Getters and setters **/
 
 	public void setName(String name){
 		this.name = name;
@@ -104,4 +113,8 @@ public class Character {
 	public int getLevel() {
 		return level;
 	}
+
+    public int getMaxHitPoints() {
+        return maxHitPoints;
+    }
 }

@@ -169,7 +169,7 @@ public class CharacterTest {
         assertEquals(6, mainCharacter.getLevel());
     }
 
-    @Test // currently, with constitution of 1, gains no hitpoints - is desirable?
+    @Test
     public void onLevelingUpGainHitpointsEqualToFivePlusConsModifier() throws Exception {
         assertEquals(5, mainCharacter.hitPoints);
         gainOneThousandXP(mainCharacter);
@@ -179,6 +179,13 @@ public class CharacterTest {
         assertEquals(8, mainCharacter.hitPoints);
         gainOneThousandXP(mainCharacter);
         assertEquals(16, mainCharacter.hitPoints);
+    }
+    @Test
+    public void evenCharactersWithWorstConstitutionGainOneHp() throws Exception {
+        mainCharacter = new Character(10,10,1,10,10,10);
+        assertUndamaged(mainCharacter);
+        gainOneThousandXP(mainCharacter);
+        assertEquals(2, mainCharacter.hitPoints);
     }
 
     @Test
@@ -204,7 +211,7 @@ public class CharacterTest {
     }
 
     private void assertHpLost(int expected, Character character) {
-        assertEquals(BASE_HP - expected, character.hitPoints);
+        assertEquals(character.getMaxHitPoints() - expected, character.hitPoints);
     }
 
     private void assertUndamaged(Character character) {
