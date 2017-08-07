@@ -6,6 +6,7 @@ public class Character {
 	public int baseArmorClass = 10;
 	public int hitPoints = 5;
 	private int xp = 0;
+	private int level = 1;
 
 	public Character(){}
 
@@ -23,8 +24,7 @@ public class Character {
 		if (dieRoll == 20) {
 			gainXp();
 			opponent.hitPoints -= Math.max(2 * baseDamage(), 1);
-		}
-		else if (dieRoll + attackModifier() >= opponent.getArmorClass()) {
+		} else if (dieRoll + attackModifier() >= opponent.getArmorClass()) {
 			gainXp();
 			opponent.hitPoints -= Math.max(baseDamage(), 1);
 		}
@@ -32,10 +32,17 @@ public class Character {
 
 	private void gainXp() {
 		xp += 10;
+		if (xp == 1000 * level)
+			levelUp();
+	}
+
+	private void levelUp() {
+		level++;
+		hitPoints += 5 + getModifier(constitution);
 	}
 
 	private int attackModifier() {
-		return getModifier(strength);
+		return getModifier(strength) + level / 2;
 	}
 
 	private int baseDamage() {
@@ -51,19 +58,20 @@ public class Character {
 	}
 
 	public void setName(String name){
-		this.name = name; //private name = the one specific to this method
-	};
+		this.name = name;
+	}
+
 	public String getName(){ //object instead of void, because it returns an object
 		return name;
-	};
+	}
 
 	public void setAlignment(Alignment alignment){
-		this.alignment = alignment; //private alignment = one specific to method
-	};
+		this.alignment = alignment;
+	}
 
 	public Alignment getAlignment(){
 		return alignment;
-	};
+	}
 
 	public int getStrength() {
 		return strength;
@@ -91,5 +99,9 @@ public class Character {
 
 	public int getXP() {
 		return xp;
+	}
+
+	public int getLevel() {
+		return level;
 	}
 }
