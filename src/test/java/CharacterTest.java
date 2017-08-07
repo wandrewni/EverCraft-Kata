@@ -2,10 +2,13 @@ import org.junit.Test; //to use @Test
 import org.junit.Before;
 import org.junit.Assert; //to use assertEquals to make sure things are equal
 
+import static org.junit.Assert.assertEquals;
+
 public class CharacterTest {
 
-	Character mainCharacter;
-	Character worstCharacter;
+    private static final int BASE_HP = 5;
+    private Character mainCharacter;
+	private Character worstCharacter;
 	
 	@Before
 	public void setup(){
@@ -20,7 +23,7 @@ public class CharacterTest {
 		
 		mainCharacter.setName("Jandrew");
 		
-		Assert.assertEquals("Jandrew", mainCharacter.getName());
+		assertEquals("Jandrew", mainCharacter.getName());
 	}
 	
 	@Test
@@ -28,15 +31,15 @@ public class CharacterTest {
 		
 		mainCharacter.setAlignment(Alignment.EVIL);
 		
-		Assert.assertEquals(Alignment.EVIL, mainCharacter.getAlignment());
+		assertEquals(Alignment.EVIL, mainCharacter.getAlignment());
 	}
 	
 	@Test
 	public void testVerifyArmorNHitPointValue(){
 	
-		Assert.assertEquals(10, mainCharacter.armorClass);
-		Assert.assertEquals(5, mainCharacter.hitPoints);
-	
+		assertEquals(10, mainCharacter.baseArmorClass);
+		assertUndamaged(mainCharacter);
+
 	}
 	
 	@Test
@@ -45,9 +48,9 @@ public class CharacterTest {
 		int dieRoll = 19;
 		
 		mainCharacter.attack(worstCharacter,dieRoll);
-		
-		Assert.assertEquals(4, worstCharacter.hitPoints);
-	
+
+		assertHpLost(1, worstCharacter);
+
 	}
 	
 	@Test
@@ -56,9 +59,9 @@ public class CharacterTest {
 		int dieRoll = 3;
 		
 		mainCharacter.attack(worstCharacter,dieRoll);
-		
-		Assert.assertEquals(5, worstCharacter.hitPoints);
-	
+
+		assertUndamaged(worstCharacter);
+
 	}
 	
 	@Test
@@ -67,20 +70,100 @@ public class CharacterTest {
 		int dieRoll = 20;
 		
 		mainCharacter.attack(worstCharacter,dieRoll);
-		
-		Assert.assertEquals(3, worstCharacter.hitPoints);
-	
+
+		assertHpLost(2, worstCharacter);
+
 	}
 
 	@Test
 	public void abilityScoresDefaultToTen(){
-		Assert.assertEquals(10, mainCharacter.getStrength());
-		Assert.assertEquals(10, mainCharacter.getDexterity());
-		Assert.assertEquals(10, mainCharacter.getConstitution());
-		Assert.assertEquals(10, mainCharacter.getWisdom());
-		Assert.assertEquals(10, mainCharacter.getIntelligence());
-		Assert.assertEquals(10, mainCharacter.getCharisma());
+		assertEquals(10, mainCharacter.getStrength());
+		assertEquals(10, mainCharacter.getDexterity());
+		assertEquals(10, mainCharacter.getConstitution());
+		assertEquals(10, mainCharacter.getWisdom());
+		assertEquals(10, mainCharacter.getIntelligence());
+		assertEquals(10, mainCharacter.getCharisma());
 	}
-	
-	
+
+	@Test
+	public void strengthModifierIsAddedToAttackRollAndDamage() throws Exception {
+		mainCharacter = new Character(17, 10, 10, 10, 10, 10);
+		mainCharacter.attack(worstCharacter, 7);
+
+		assertHpLost(4, worstCharacter);
+	}
+
+	@Test
+	public void strengthModifierIsDoubledForDamageOnCrit() throws Exception {
+		mainCharacter = new Character(17, 10, 10, 10, 10, 10);
+		mainCharacter.attack(worstCharacter, 20);
+
+		assertHpLost(8, worstCharacter);
+	}
+
+	@Test
+	public void attackCannotBeModifiedBelowOne() throws Exception {
+		mainCharacter = new Character(1, 10, 10, 10, 10, 10);
+		mainCharacter.attack(worstCharacter, 19);
+
+		assertHpLost(1, worstCharacter);
+
+		worstCharacter = new Character();
+		mainCharacter.attack(worstCharacter, 20);
+
+		assertHpLost(1, worstCharacter);
+	}
+
+	@Test
+	public void dexterityModifierIsAddedToArmorClassForDeterminingHit() throws Exception {
+		mainCharacter = new Character(10,14, 10, 10, 10, 10);
+		worstCharacter = new Character(10,4, 10, 10, 10, 10);
+
+		worstCharacter.attack(mainCharacter, 11);
+
+		assertUndamaged(this.mainCharacter);
+
+		this.mainCharacter.attack(worstCharacter, 7);
+
+		assertHpLost(1, this.worstCharacter);
+	}
+
+	@Test
+	public void constitutionModifierIsAddedToHp() throws Exception {
+		mainCharacter = new Character(10, 10, 16,10,10,10);
+		assertEquals(8, mainCharacter.hitPoints);
+        mainCharacter = new Character(10, 10, 4,10,10,10);
+        assertEquals(2, mainCharacter.hitPoints);
+	}
+
+    @Test
+    public void startingHpCannotBeReducedBelowOne() throws Exception {
+        mainCharacter = new Character(10, 10, 1,10,10,10);
+        assertEquals(1, mainCharacter.hitPoints);
+    }
+
+    @Test
+    public void characterGainsExperienceWhenHitting() throws Exception {
+		assertXpGained(0, mainCharacter);
+		mainCharacter.attack(worstCharacter, 10);
+		assertXpGained(10, mainCharacter);
+		mainCharacter.attack(worstCharacter, 9);
+		assertXpGained(10, mainCharacter);
+
+		// gains on crit
+		mainCharacter.attack(worstCharacter, 20);
+		assertXpGained(20, this.mainCharacter);
+	}
+
+	private void assertXpGained(int xp, Character mainCharacter) {
+		assertEquals(xp, mainCharacter.getXP());
+	}
+
+	private void assertHpLost(int expected, Character character) {
+		assertEquals(BASE_HP - expected, character.hitPoints);
+	}
+
+	private void assertUndamaged(Character character) {
+		assertHpLost(0, character);
+	}
 }
