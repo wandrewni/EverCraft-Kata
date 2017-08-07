@@ -1,4 +1,5 @@
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -157,34 +158,30 @@ public class CharacterTest {
     @Test
     public void characterLevelsUpEveryThousandXp() throws Exception {
         assertEquals(1, mainCharacter.getLevel());
-        gainOneThousandXP(mainCharacter);
+        for (int i = 0; i < 100; i++)
+            mainCharacter.attack(new Character(), 10);
         assertEquals(2, mainCharacter.getLevel());
-        gainOneThousandXP(mainCharacter);
+        for (int i = 0; i < 100; i++)
+            mainCharacter.attack(new Character(), 10);
         assertEquals(3, mainCharacter.getLevel());
-        gainOneThousandXP(mainCharacter);
-        assertEquals(4, mainCharacter.getLevel());
-        gainOneThousandXP(mainCharacter);
-        assertEquals(5, mainCharacter.getLevel());
-        gainOneThousandXP(mainCharacter);
-        assertEquals(6, mainCharacter.getLevel());
     }
 
     @Test
     public void onLevelingUpGainHitpointsEqualToFivePlusConsModifier() throws Exception {
         assertEquals(5, mainCharacter.hitPoints);
-        gainOneThousandXP(mainCharacter);
+        levelUp(mainCharacter);
         assertEquals(10, mainCharacter.hitPoints);
 
         mainCharacter = new Character(10, 10, 16, 10, 10, 10);
         assertEquals(8, mainCharacter.hitPoints);
-        gainOneThousandXP(mainCharacter);
+        levelUp(mainCharacter);
         assertEquals(16, mainCharacter.hitPoints);
     }
     @Test
     public void evenCharactersWithWorstConstitutionGainOneHp() throws Exception {
         mainCharacter = new Character(10,10,1,10,10,10);
         assertUndamaged(mainCharacter);
-        gainOneThousandXP(mainCharacter);
+        levelUp(mainCharacter);
         assertEquals(2, mainCharacter.hitPoints);
     }
 
@@ -194,13 +191,13 @@ public class CharacterTest {
         mainCharacter.attack(worstCharacter, 9);
         assertUndamaged(worstCharacter);
 
-        gainOneThousandXP(mainCharacter);
+        levelUp(mainCharacter);
 
         mainCharacter.attack(worstCharacter, 9);
         assertHpLost(1, worstCharacter);
 
-        gainOneThousandXP(mainCharacter);
-        gainOneThousandXP(mainCharacter);
+        levelUp(mainCharacter);
+        levelUp(mainCharacter);
 
         mainCharacter.attack(worstCharacter, 8);
         assertHpLost(2, worstCharacter);
@@ -210,7 +207,7 @@ public class CharacterTest {
     public void fighterHasTenHitPointsPerLevel() throws Exception {
         mainCharacter = new Character(CharacterClass.FIGHTER);
         assertEquals(10, mainCharacter.getMaxHitPoints());
-        gainOneThousandXP(mainCharacter);
+        levelUp(mainCharacter);
         assertEquals(20, mainCharacter.getMaxHitPoints());
         mainCharacter = new Character(CharacterClass.MONK);
         assertEquals(5, mainCharacter.getMaxHitPoints());
@@ -225,28 +222,82 @@ public class CharacterTest {
         mainCharacter.attack(worstCharacter, 9);
         assertHpLost(1, worstCharacter);
 
-        gainOneThousandXP(mainCharacter);
+        levelUp(mainCharacter);
         mainCharacter.attack(worstCharacter, 8);
         assertHpLost(2, worstCharacter);
 
-        gainOneThousandXP(mainCharacter);
+        levelUp(mainCharacter);
         mainCharacter.attack(worstCharacter, 7);
         assertHpLost(3, worstCharacter);
+    }
+
+    @Test
+    public void rogueGetsTripleDamageOnCriticalHits() throws Exception {
+        mainCharacter = new Character(CharacterClass.ROGUE);
+        assertUndamaged(worstCharacter);
+
+        mainCharacter.attack(worstCharacter, 20);
+
+        assertHpLost(3, worstCharacter);
+    }
+
+    @Test
+    public void rogueAddsDexterityModifierInsteadOfStrengthModifierToAttackRolls() throws Exception {
+        mainCharacter = new Character(CharacterClass.ROGUE, 10, 16, 10, 10, 10, 10);
+
+        mainCharacter.attack(worstCharacter, 7);
+
+        assertHpLost(1, worstCharacter);
+    }
+
+    @Test
+    public void rogueDoesntUseStrengthModifierForAttackRolls() throws Exception {
+        mainCharacter = new Character(CharacterClass.ROGUE, 16, 10, 10, 10, 10, 10);
+
+        mainCharacter.attack(worstCharacter, 7);
+
+        assertUndamaged(worstCharacter);
+    }
+
+    @Test
+    public void rogueIgnoresOpponentDexterityModifierForArmorClassIfPositive() throws Exception {
+        mainCharacter = new Character(CharacterClass.ROGUE);
+        worstCharacter = new Character(10, 16, 10, 10, 10, 10);
+
+        mainCharacter.attack(worstCharacter, 10);
+
+        assertHpLost(1, worstCharacter);
+    }
+
+    @Test
+    public void rogueTakesAdvantageOfOpponentDexterityModifierForArmorClassIfNegative() throws Exception {
+        mainCharacter = new Character(CharacterClass.ROGUE);
+        worstCharacter = new Character(10, 4, 10, 10, 10, 10);
+
+        mainCharacter.attack(worstCharacter, 7);
+
+        assertHpLost(1, worstCharacter);
+    }
+
+    @Test(expected=IllegalStateException.class)
+    public void roguesCannotHaveGoodAlignment() throws Exception {
+        mainCharacter = new Character(CharacterClass.ROGUE);
+        mainCharacter.setAlignment(Alignment.GOOD);
     }
 
     private void assertXpGained(int xp, Character mainCharacter) {
         assertEquals(xp, mainCharacter.getXP());
     }
 
-    private void assertHpLost(int expected, Character character) {
-        assertEquals(character.getMaxHitPoints() - expected, character.hitPoints);
+    private void assertHpLost(int hpLost, Character character) {
+        assertEquals(character.getMaxHitPoints() - hpLost, character.hitPoints);
     }
 
     private void assertUndamaged(Character character) {
         assertHpLost(0, character);
     }
 
-    private void gainOneThousandXP(Character character) {
+    private void levelUp(Character character) {
         for (int i = 0; i < 100; i++)
             character.attack(new Character(), 10);
     }

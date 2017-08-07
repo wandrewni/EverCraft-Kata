@@ -1,7 +1,7 @@
 public class Character {
 
 	private String name;
-	private Alignment alignment; //enum you made in Alignment.java
+	private Alignment alignment;
 	private int strength = 10, dexterity = 10, constitution = 10, wisdom = 10, intelligence = 10, charisma = 10;
 	public int baseArmorClass = 10;
 	public int hitPoints = 5;
@@ -21,6 +21,17 @@ public class Character {
         initHitPoints();
 	}
 
+    public Character(CharacterClass myClass, int strength, int dexterity, int constitution, int wisdom, int intelligence, int charisma) {
+	    this.myClass = myClass;
+        this.strength = strength;
+        this.dexterity = dexterity;
+        this.constitution = constitution;
+        this.wisdom = wisdom;
+        this.intelligence = intelligence;
+        this.charisma = charisma;
+        initHitPoints();
+    }
+
     public Character(CharacterClass characterClass) {
 	    myClass = characterClass;
 	    initHitPoints();
@@ -34,14 +45,22 @@ public class Character {
     public void attack(Character opponent, int dieRoll){
 		if (dieRoll == 20) {
 			gainXp();
-			opponent.hitPoints -= Math.max(2 * baseDamage(), 1);
-		} else if (dieRoll + attackModifier() >= opponent.getArmorClass()) {
+            int critDamageModifier = CharacterClass.ROGUE == myClass ? 3 : 2;
+            opponent.hitPoints -= Math.max(critDamageModifier * baseDamage(), 1);
+		} else if (attackHits(opponent, dieRoll)) {
 			gainXp();
 			opponent.hitPoints -= Math.max(baseDamage(), 1);
 		}
 	}
 
-	private void gainXp() {
+    private boolean attackHits(Character opponent, int dieRoll) {
+        int opponentArmorClass = opponent.getArmorClass();
+        if (CharacterClass.ROGUE == myClass && opponent.getModifier(opponent.dexterity) > 0)
+            opponentArmorClass = opponent.baseArmorClass;
+        return dieRoll + attackModifier() >= opponentArmorClass;
+    }
+
+    private void gainXp() {
 		xp += 10;
 		if (xp == 1000 * level)
 			levelUp();
@@ -49,6 +68,7 @@ public class Character {
 
 	private void levelUp() {
 		level++;
+		// TODO do hitpoints increase on level up in addition to max hp?
 		hitPoints += getHitpointIncrease(constitution);
 		maxHitPoints += getHitpointIncrease(constitution);
 	}
@@ -61,7 +81,8 @@ public class Character {
 	private int attackModifier() {
         int levelBonus = CharacterClass.FIGHTER == myClass ? level
                 : level / 2;
-        return getModifier(strength) + levelBonus;
+        int attackAbility = CharacterClass.ROGUE == myClass ? dexterity : strength;
+        return getModifier(attackAbility) + levelBonus;
 	}
 
 	private int baseDamage() {
@@ -88,6 +109,8 @@ public class Character {
 	}
 
 	public void setAlignment(Alignment alignment){
+	    if (myClass == CharacterClass.ROGUE && alignment == Alignment.GOOD)
+	        throw new IllegalStateException("Rogues may not be good");
 		this.alignment = alignment;
 	}
 
