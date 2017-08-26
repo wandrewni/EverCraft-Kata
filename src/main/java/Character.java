@@ -8,8 +8,13 @@ public class Character {
 	private int maxHitPoints = 5;
 	private int xp = 0;
 	private int level = 1;
-	private CharacterClass myClass;
-	public Character(){}
+	private CharacterClass myClass = CharacterClass.UNCLASSED; // TODO get rid of?
+
+    // TODO consolidate constructors?
+	public Character(){
+		initHitPoints();
+		initAlignment();
+	}
 
 	public Character(int strength, int dexterity, int constitution, int wisdom, int intelligence, int charisma) {
 		this.strength = strength;
@@ -19,6 +24,7 @@ public class Character {
 		this.intelligence = intelligence;
 		this.charisma = charisma;
         initHitPoints();
+		initAlignment();
 	}
 
     public Character(CharacterClass myClass, int strength, int dexterity, int constitution, int wisdom, int intelligence, int charisma) {
@@ -30,14 +36,21 @@ public class Character {
         this.intelligence = intelligence;
         this.charisma = charisma;
         initHitPoints();
+		initAlignment();
     }
 
     public Character(CharacterClass characterClass) {
 	    myClass = characterClass;
 	    initHitPoints();
-    }
+		initAlignment();
+	}
 
-    private void initHitPoints() {
+	private void initAlignment() {
+		if (CharacterClass.PALADIN == myClass)
+            alignment = Alignment.GOOD;
+	}
+
+	private void initHitPoints() {
         this.hitPoints = getHitpointIncrease(constitution);
         this.maxHitPoints = hitPoints;
     }
@@ -45,24 +58,39 @@ public class Character {
     public void attack(Character opponent, int dieRoll){
 		if (dieRoll == 20) {
 			gainXp();
-            int critDamageModifier = CharacterClass.ROGUE == myClass ? 3 : 2;
-            opponent.hitPoints -= Math.max(critDamageModifier * baseDamage(), 1);
+			opponent.hitPoints -= Math.max(getCritDamageModifierVersus(opponent) * baseDamageVersus(opponent), 1);
 		} else if (attackHits(opponent, dieRoll)) {
 			gainXp();
-			opponent.hitPoints -= Math.max(baseDamage(), 1);
+			opponent.hitPoints -= Math.max(baseDamageVersus(opponent), 1);
 		}
 	}
 
-    private boolean attackHits(Character opponent, int dieRoll) {
-        int opponentArmorClass = opponent.getArmorClass();
-        if (CharacterClass.ROGUE == myClass && opponent.getModifier(opponent.dexterity) > 0)
-            opponentArmorClass = opponent.baseArmorClass;
-        return dieRoll + attackModifier() >= opponentArmorClass;
+	private int getCritDamageModifierVersus(Character opponent) {
+		boolean paladinFightingEvil = CharacterClass.PALADIN == myClass && Alignment.EVIL == opponent.getAlignment();
+		boolean rogue = CharacterClass.ROGUE == myClass;
+		return paladinFightingEvil || rogue ? 3 : 2;
+	}
+
+	private boolean attackHits(Character opponent, int dieRoll) {
+        return dieRoll + attackModifierVersus(opponent) >= opponent.getArmorClassVersusAttacker(this);
+    }
+
+    private int getArmorClassVersusAttacker(Character attacker){
+        int armorClass = baseArmorClass;
+        int wisdomMod = getModifier(wisdom);
+        int dexMod = getModifier(dexterity);
+
+        if (CharacterClass.MONK == myClass && wisdomMod > 0)
+            armorClass += wisdomMod;
+        if (CharacterClass.ROGUE == attacker.myClass)
+            return armorClass + Math.min(dexMod, 0);
+        else
+            return armorClass + dexMod;
     }
 
     private void gainXp() {
 		xp += 10;
-		if (xp == 1000 * level)
+		if (xp % 1000 == 0)
 			levelUp();
 	}
 
@@ -74,23 +102,57 @@ public class Character {
 	}
 
     private int getHitpointIncrease(int constitution) {
-        int baseHitpoints = CharacterClass.FIGHTER == myClass ? 10 : 5;
+        int baseHitpoints;
+        switch (myClass) {
+            case FIGHTER:
+                baseHitpoints = 10;
+                break;
+            case MONK:
+                baseHitpoints = 6;
+                break;
+			case PALADIN:
+				baseHitpoints = 8;
+				break;
+            default:
+                baseHitpoints = 5;
+        }
         return Math.max(baseHitpoints + getModifier(constitution),1);
     }
 
-	private int attackModifier() {
-        int levelBonus = CharacterClass.FIGHTER == myClass ? level
-                : level / 2;
-        int attackAbility = CharacterClass.ROGUE == myClass ? dexterity : strength;
-        return getModifier(attackAbility) + levelBonus;
+	private int attackModifierVersus(Character opponent) {
+		int abilityScore = CharacterClass.ROGUE == myClass ? dexterity : strength;
+		return getModifier(abilityScore) + getAttackBonusForLevel() + getAttackRollBonusAgainst(opponent);
 	}
 
-	private int baseDamage() {
-		return 1 + getModifier(strength);
+	private int getAttackRollBonusAgainst(Character opponent) {
+		return CharacterClass.PALADIN == myClass && Alignment.EVIL == opponent.getAlignment() ? 2 : 0;
 	}
 
-	private int getArmorClass() {
-		return baseArmorClass + getModifier(dexterity);
+	private int getAttackBonusForLevel() {
+		switch (myClass) {
+			case MONK:
+				int bonus = 0;
+				for (int i = 1; i <= level; i++)
+					if (i % 2 == 0 || i % 3 == 0)
+						bonus++;
+				return bonus;
+			case FIGHTER:
+			case PALADIN:
+				return level - 1;
+			default:
+				return level / 2;
+		}
+	}
+
+	private int baseDamageVersus(Character opponent) {
+        int base;
+		boolean monk = CharacterClass.MONK == myClass;
+		boolean paladinFightingEvil = CharacterClass.PALADIN == myClass && Alignment.EVIL == opponent.getAlignment();
+		if (monk || paladinFightingEvil)
+        	base = 3;
+        else
+        	base = 1;
+        return base + getModifier(strength);
 	}
 
 	private int getModifier(int ability) {
@@ -111,6 +173,8 @@ public class Character {
 	public void setAlignment(Alignment alignment){
 	    if (myClass == CharacterClass.ROGUE && alignment == Alignment.GOOD)
 	        throw new IllegalStateException("Rogues may not be good");
+	    if (myClass == CharacterClass.PALADIN)
+	    	throw new IllegalStateException("Paladin alignment cannot be changed");
 		this.alignment = alignment;
 	}
 

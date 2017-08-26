@@ -1,5 +1,5 @@
+import javafx.print.PageLayout;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -169,19 +169,20 @@ public class CharacterTest {
     @Test
     public void onLevelingUpGainHitpointsEqualToFivePlusConsModifier() throws Exception {
         assertEquals(5, mainCharacter.hitPoints);
-        levelUp(mainCharacter);
+        levelUp(mainCharacter, 1);
         assertEquals(10, mainCharacter.hitPoints);
 
         mainCharacter = new Character(10, 10, 16, 10, 10, 10);
         assertEquals(8, mainCharacter.hitPoints);
-        levelUp(mainCharacter);
+        levelUp(mainCharacter, 1);
         assertEquals(16, mainCharacter.hitPoints);
     }
+
     @Test
     public void evenCharactersWithWorstConstitutionGainOneHp() throws Exception {
-        mainCharacter = new Character(10,10,1,10,10,10);
+        mainCharacter = new Character(10, 10, 1, 10, 10, 10);
         assertUndamaged(mainCharacter);
-        levelUp(mainCharacter);
+        levelUp(mainCharacter, 1);
         assertEquals(2, mainCharacter.hitPoints);
     }
 
@@ -191,13 +192,12 @@ public class CharacterTest {
         mainCharacter.attack(worstCharacter, 9);
         assertUndamaged(worstCharacter);
 
-        levelUp(mainCharacter);
+        levelUp(mainCharacter, 1);
 
         mainCharacter.attack(worstCharacter, 9);
         assertHpLost(1, worstCharacter);
 
-        levelUp(mainCharacter);
-        levelUp(mainCharacter);
+        levelUp(mainCharacter, 2);
 
         mainCharacter.attack(worstCharacter, 8);
         assertHpLost(2, worstCharacter);
@@ -207,28 +207,23 @@ public class CharacterTest {
     public void fighterHasTenHitPointsPerLevel() throws Exception {
         mainCharacter = new Character(CharacterClass.FIGHTER);
         assertEquals(10, mainCharacter.getMaxHitPoints());
-        levelUp(mainCharacter);
+        levelUp(mainCharacter, 1);
         assertEquals(20, mainCharacter.getMaxHitPoints());
-        mainCharacter = new Character(CharacterClass.MONK);
-        assertEquals(5, mainCharacter.getMaxHitPoints());
     }
 
     @Test
     public void fighterGetsPlusOneToAttackEachLevel() throws Exception {
         mainCharacter = new Character(CharacterClass.FIGHTER);
+        mainCharacter.attack(worstCharacter, 9);
         assertUndamaged(worstCharacter);
-        mainCharacter.attack(worstCharacter, 8);
-        assertUndamaged(worstCharacter);
+
+        levelUp(mainCharacter, 1);
         mainCharacter.attack(worstCharacter, 9);
         assertHpLost(1, worstCharacter);
 
-        levelUp(mainCharacter);
+        levelUp(mainCharacter, 1);
         mainCharacter.attack(worstCharacter, 8);
         assertHpLost(2, worstCharacter);
-
-        levelUp(mainCharacter);
-        mainCharacter.attack(worstCharacter, 7);
-        assertHpLost(3, worstCharacter);
     }
 
     @Test
@@ -279,10 +274,163 @@ public class CharacterTest {
         assertHpLost(1, worstCharacter);
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void roguesCannotHaveGoodAlignment() throws Exception {
         mainCharacter = new Character(CharacterClass.ROGUE);
         mainCharacter.setAlignment(Alignment.GOOD);
+    }
+
+    @Test
+    public void monkGains6HitPointsPerlevel() throws Exception {
+        mainCharacter = new Character(CharacterClass.MONK);
+        assertEquals(6, mainCharacter.getMaxHitPoints());
+        levelUp(mainCharacter, 1);
+        assertEquals(12, mainCharacter.getMaxHitPoints());
+    }
+
+    @Test
+    public void monkDoes3DamageOnSuccessfulHitAnd6onSuccessfulCrit() throws Exception {
+        mainCharacter = new Character(CharacterClass.MONK);
+        mainCharacter.attack(worstCharacter, 10);
+        assertHpLost(3, worstCharacter);
+
+        worstCharacter = new Character();
+        mainCharacter.attack(worstCharacter, 20);
+        assertHpLost(6, worstCharacter);
+    }
+
+    @Test
+    public void monkAddsWisdomToDexterityModifierForDefending() throws Exception {
+        mainCharacter = new Character(CharacterClass.MONK, 10, 14, 10, 14, 10, 10);
+        worstCharacter.attack(mainCharacter, 13);
+
+        assertUndamaged(mainCharacter);
+
+        worstCharacter = new Character(CharacterClass.ROGUE);
+
+        worstCharacter.attack(mainCharacter, 11);
+        assertUndamaged(mainCharacter);
+
+        worstCharacter.attack(mainCharacter, 12);
+        assertHpLost(1, mainCharacter);
+    }
+
+    @Test
+    public void monkDoesntAddNegativeWisdomToDefendingModifier() throws Exception {
+        mainCharacter = new Character(CharacterClass.MONK, 10, 10, 10, 1, 10, 10);
+
+        worstCharacter.attack(mainCharacter, 9);
+
+        assertUndamaged(mainCharacter);
+    }
+
+    @Test
+    public void monkAttackRollIsIncreasedEverySecondAndThirdLevels() throws Exception {
+        mainCharacter = new Character(CharacterClass.MONK);
+
+        mainCharacter.attack(worstCharacter, 9);
+        assertUndamaged(worstCharacter);
+
+        levelUp(mainCharacter, 1);
+        mainCharacter.attack(worstCharacter, 9);
+        assertHpLost(3, worstCharacter);
+
+        levelUp(mainCharacter, 1);
+        mainCharacter.attack(worstCharacter, 8);
+        assertHpLost(6, worstCharacter);
+
+        worstCharacter = new Character();
+        mainCharacter = new Character(CharacterClass.MONK);
+        levelUp(mainCharacter, 5);
+
+        mainCharacter.attack(worstCharacter, 5);
+        assertUndamaged(worstCharacter);
+        mainCharacter.attack(worstCharacter, 6);
+        assertHpLost(3, worstCharacter);
+    }
+
+    @Test
+    public void paladinGains8hitPointsPerLevel() throws Exception {
+        mainCharacter = new Character(CharacterClass.PALADIN);
+        assertEquals(8, mainCharacter.getMaxHitPoints());
+        levelUp(mainCharacter, 1);
+        assertEquals(16, mainCharacter.getMaxHitPoints());
+    }
+
+    @Test
+    public void paladinHasPlus2ToDamageWhenAttackingEvilCharacters() throws Exception {
+        mainCharacter = new Character(CharacterClass.PALADIN);
+
+        mainCharacter.attack(worstCharacter, 10);
+
+        assertHpLost(1, worstCharacter);
+
+        worstCharacter = new Character();
+        worstCharacter.setAlignment(Alignment.EVIL);
+
+        mainCharacter.attack(worstCharacter, 10);
+        assertHpLost(3, worstCharacter);
+    }
+
+    @Test
+    public void paladinHasPlus2ToRollsWhenAttackingEvilCharacters() throws Exception {
+        mainCharacter = new Character(CharacterClass.PALADIN);
+
+        mainCharacter.attack(worstCharacter, 9);
+
+        assertUndamaged(worstCharacter);
+
+        worstCharacter = new Character();
+        worstCharacter.setAlignment(Alignment.EVIL);
+
+        mainCharacter.attack(worstCharacter, 9);
+        assertHpLost(3, worstCharacter);
+
+        mainCharacter.attack(worstCharacter, 8);
+        assertHpLost(6, worstCharacter);
+    }
+
+    @Test
+    public void paladinDoesTripleDamageOnCritAgainstEvil() throws Exception {
+        mainCharacter = new Character(CharacterClass.PALADIN);
+
+        // normal crit
+        mainCharacter.attack(worstCharacter, 20);
+        assertHpLost(2, worstCharacter);
+
+        // evil crit
+        worstCharacter = new Character();
+        worstCharacter.setAlignment(Alignment.EVIL);
+        mainCharacter.attack(worstCharacter, 20);
+
+        assertHpLost(9, worstCharacter);
+    }
+
+    @Test
+    public void paladinGetsPlusOneToAttackEachLevel() throws Exception {
+        mainCharacter = new Character(CharacterClass.PALADIN);
+        mainCharacter.attack(worstCharacter, 9);
+        assertUndamaged(worstCharacter);
+
+        levelUp(mainCharacter, 1);
+        mainCharacter.attack(worstCharacter, 9);
+        assertHpLost(1, worstCharacter);
+
+        levelUp(mainCharacter, 1);
+        mainCharacter.attack(worstCharacter, 8);
+        assertHpLost(2, worstCharacter);
+    }
+
+    @Test
+    public void paladinDefaultsToGoodAlignment() throws Exception {
+        mainCharacter = new Character(CharacterClass.PALADIN);
+        assertEquals(Alignment.GOOD, mainCharacter.getAlignment());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void paladinRestrictedToGoodAlignment() throws Exception {
+        mainCharacter = new Character(CharacterClass.PALADIN);
+        mainCharacter.setAlignment(Alignment.NEUTRAL);
     }
 
     private void assertXpGained(int xp, Character mainCharacter) {
@@ -297,8 +445,8 @@ public class CharacterTest {
         assertHpLost(0, character);
     }
 
-    private void levelUp(Character character) {
-        for (int i = 0; i < 100; i++)
+    private void levelUp(Character character, int levels) {
+        for (int i = 0; i < levels * 100; i++)
             character.attack(new Character(), 10);
     }
 
