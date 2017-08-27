@@ -12,6 +12,7 @@ public class Character {
 	private int level = 1;
 	private CharacterClass myClass = CharacterClass.UNCLASSED; // TODO get rid of?
 	private CharacterRace race = CharacterRace.HUMAN;
+	private Weapon weapon = Weapon.UNARMED;
 
 	// TODO consolidate constructors?
 	public Character(){
@@ -101,7 +102,8 @@ public class Character {
 	private int getCritDamageModifierVersus(Character defender) {
 		boolean paladinFightingEvil = CharacterClass.PALADIN == myClass && Alignment.EVIL == defender.getAlignment();
 		boolean rogue = CharacterClass.ROGUE == myClass;
-		return paladinFightingEvil || rogue ? 3 : 2;
+		int classModifier = paladinFightingEvil || rogue ? 3 : 2;
+		return classModifier + weapon.critModifier;
 	}
 
 	private boolean attackHits(Character defender, int dieRoll) {
@@ -134,17 +136,26 @@ public class Character {
 
 	private int attackModifierVersus(Character opponent) {
 		int abilityModifier = CharacterClass.ROGUE == myClass ? getDexterityModifier() : getStrengthModifier();
-		return abilityModifier + getAttackRollBonusForLevel() + getAttackRollBonusAgainst(opponent);
+		int weaponModfier = weapon.attackModifier();
+		if (weapon == Weapon.NUNCHUCKS && myClass == CharacterClass.MONK)
+			weaponModfier = 0;
+		return abilityModifier + getAttackRollBonusForLevel() + getAttackRollBonusAgainst(opponent) + weaponModfier;
 	}
 
 	private int getAttackRollBonusAgainst(Character opponent) {
 		int bonus = 0;
 		boolean paladinFightingEvil = CharacterClass.PALADIN == myClass && Alignment.EVIL == opponent.getAlignment();
 		boolean dwarfFightingOrc = CharacterRace.DWARF == race && CharacterRace.ORC == opponent.getRace();
+		boolean elfWieldingElvenSword = race == CharacterRace.ELF && weapon == Weapon.ELVEN_LONGSWORD; // TODO
+		boolean elvenSwordVsOrc = opponent.getRace() == CharacterRace.ORC && weapon == Weapon.ELVEN_LONGSWORD;
 		if (paladinFightingEvil)
 			bonus += 2;
 		if (dwarfFightingOrc)
 			bonus += 2;
+		if (elfWieldingElvenSword && elvenSwordVsOrc)
+			bonus += 4;
+		else if (elfWieldingElvenSword || elvenSwordVsOrc)
+			bonus += 1;
 		return bonus;
 	}
 
@@ -165,15 +176,23 @@ public class Character {
 	}
 
 	private int baseDamageVersus(Character opponent) {
-		int base = 1;
+		int base = weapon.baseDamage();
 		boolean monk = CharacterClass.MONK == myClass;
+		if (monk && weapon == Weapon.UNARMED)
+			base = 3;
 		boolean paladinFightingEvil = CharacterClass.PALADIN == myClass && Alignment.EVIL == opponent.getAlignment();
 		boolean dwarfFightingOrc = CharacterRace.DWARF == race && CharacterRace.ORC == opponent.getRace();
-		if (monk || paladinFightingEvil)
+		boolean elfWieldingElvenSword = race == CharacterRace.ELF && weapon == Weapon.ELVEN_LONGSWORD; // TODO
+		boolean elvenSwordVsOrc = opponent.getRace() == CharacterRace.ORC && weapon == Weapon.ELVEN_LONGSWORD;
+		if (paladinFightingEvil)
 			base += 2;
 		if (dwarfFightingOrc)
 			base += 2;
-		return base + getStrengthModifier();
+		if (elfWieldingElvenSword && elvenSwordVsOrc)
+			base += 4;
+		else if (elfWieldingElvenSword || elvenSwordVsOrc)
+			base += 1;
+		return base + getStrengthModifier() + weapon.bonusDamage();
 	}
 
 	private void gainXp() {
@@ -323,5 +342,45 @@ public class Character {
 
 	public CharacterRace getRace() {
 		return race;
+	}
+
+	public void equip(Weapon weapon) {
+		this.weapon = weapon;
+	}
+
+	public enum Weapon {
+		WARAXE_PLUS_2(6, 2, 2, 1),
+		ELVEN_LONGSWORD(5, 1, 1, 0),
+		LONGSWORD(5, 0, 0, 0),
+		UNARMED(1, 0, 0, 0),
+		NUNCHUCKS(6, 0, -4, 0);
+
+		private int baseDamage;
+		private int bonusDamage;
+		private int attackModifier;
+		private int critModifier;
+
+		Weapon(int baseDamage, int bonusDamage, int attackModifier, int critModifier){
+			this.baseDamage = baseDamage;
+			this.bonusDamage = bonusDamage;
+			this.attackModifier = attackModifier;
+			this.critModifier = critModifier;
+		}
+
+		public int baseDamage(){
+			return baseDamage;
+		}
+
+		public int bonusDamage(){
+			return bonusDamage;
+		}
+
+		public int attackModifier(){
+			return attackModifier;
+		}
+
+		public int critModifier() {
+			return critModifier;
+		}
 	}
 }

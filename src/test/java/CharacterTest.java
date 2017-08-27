@@ -1,4 +1,3 @@
-import javafx.print.PageLayout;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -554,6 +553,90 @@ public class CharacterTest {
     public void halflingsCannotHaveEvilAlignment() throws Exception {
         mainCharacter = new Character(CharacterRace.HALFLING);
         mainCharacter.setAlignment(Alignment.EVIL);
+    }
+
+    @Test
+    public void longSwordHasBaseDamageOf5() throws Exception {
+        mainCharacter.equip(Character.Weapon.LONGSWORD);
+        mainCharacter.attack(worstCharacter, 10);
+        assertHpLost(5, worstCharacter);
+    }
+
+    @Test
+    public void plus2WaraxeHasBaseDamageOfSixAndAdds2toAttackAndDamage() throws Exception {
+        mainCharacter.equip(Character.Weapon.WARAXE_PLUS_2);
+        mainCharacter.attack(worstCharacter, 8);
+        assertHpLost(8, worstCharacter);
+    }
+
+    @Test
+    public void plus2WaraxeHasTripleDamageOnCriticalForNonRogue() throws Exception {
+        mainCharacter.equip(Character.Weapon.WARAXE_PLUS_2);
+        mainCharacter.attack(worstCharacter, 20);
+        assertHpLost(24, worstCharacter);
+    }
+
+    @Test
+    public void plus2WaraxeHasQuadrupleDamageOnCriticalForRogue() throws Exception {
+        mainCharacter = new Character(CharacterClass.ROGUE);
+        mainCharacter.equip(Character.Weapon.WARAXE_PLUS_2);
+        mainCharacter.attack(worstCharacter, 20);
+        assertHpLost(32, worstCharacter);
+    }
+
+    @Test
+    public void elvenLongswordHasBaseDamageOfFiveWithPlus1ToAttackAndDamage() throws Exception {
+        mainCharacter.equip(Character.Weapon.ELVEN_LONGSWORD);
+        mainCharacter.attack(worstCharacter, 9);
+        assertHpLost(6, worstCharacter);
+    }
+
+    @Test
+    public void elvenLongSwordhasPlus2ToAttackAndDamageWhenWieldedByAnElf() throws Exception {
+        mainCharacter = new Character(CharacterRace.ELF);
+        mainCharacter.equip(Character.Weapon.ELVEN_LONGSWORD);
+        mainCharacter.attack(worstCharacter, 8);
+        assertHpLost(7, worstCharacter);
+    }
+
+    @Test
+    public void elvenLongSwordhasPlus2ToAttackAndDamageWhenWieldedAgainstAnOrc() throws Exception {
+        worstCharacter = new Character(CharacterRace.ORC);
+        mainCharacter.equip(Character.Weapon.ELVEN_LONGSWORD);
+        mainCharacter.attack(worstCharacter, 10); // orcs have 12 ac
+        assertHpLost(7, worstCharacter);
+    }
+
+    @Test
+    public void elvenLongSwordhasPlus5ToAttackAndDamageWhenWieldedByAnElfAgainstAnOrc() throws Exception {
+        mainCharacter = new Character(CharacterRace.ELF);
+        worstCharacter = new Character(CharacterRace.ORC);
+        mainCharacter.equip(Character.Weapon.ELVEN_LONGSWORD);
+        mainCharacter.attack(worstCharacter, 7); // orcs have 12 ac
+        assertHpLost(10, worstCharacter);
+    }
+
+    @Test
+    public void nunchucksDoSixPointsOfDamage() throws Exception {
+        mainCharacter.equip(Character.Weapon.NUNCHUCKS);
+        mainCharacter.attack(worstCharacter, 16);
+        assertHpLost(6, worstCharacter);
+    }
+
+    @Test
+    public void nunchucksHaveMinus4PenaltyToAttackWhenUsedByNonMonk() throws Exception {
+        equipNunChucks();
+        mainCharacter.attack(worstCharacter, 13);
+        assertUndamaged(worstCharacter);
+
+        mainCharacter = new Character(CharacterClass.MONK);
+        mainCharacter.equip(Character.Weapon.NUNCHUCKS);
+        mainCharacter.attack(worstCharacter, 10);
+        assertHpLost(6, worstCharacter);
+    }
+
+    private void equipNunChucks() {
+        mainCharacter.equip(Character.Weapon.NUNCHUCKS);
     }
 
     private void assertXpGained(int xp, Character mainCharacter) {
