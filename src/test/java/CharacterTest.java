@@ -433,12 +433,136 @@ public class CharacterTest {
         mainCharacter.setAlignment(Alignment.NEUTRAL);
     }
 
+    @Test
+    public void charactersDefaultToHuman() throws Exception {
+      mainCharacter = new Character();
+      assertEquals(CharacterRace.HUMAN, mainCharacter.getRace());
+    }
+
+    @Test
+    public void orcModifiers() throws Exception {
+        mainCharacter = new Character(CharacterRace.ORC);
+        assertEquals(2, mainCharacter.getStrengthModifier());
+        assertEquals(-1, mainCharacter.getIntelligenceModifier());
+        assertEquals(-1, mainCharacter.getWisdomModifier());
+        assertEquals(-1, mainCharacter.getCharismaModifier());
+    }
+
+    @Test
+    public void orcsHavePlusTwoToArmorClass() throws Exception {
+        worstCharacter = new Character(CharacterRace.ORC);
+        mainCharacter.attack(worstCharacter, 10);
+        assertUndamaged(worstCharacter);
+        mainCharacter.attack(worstCharacter, 12);
+        assertHpLost(1, worstCharacter);
+    }
+
+    @Test
+    public void dwarfModifiers() throws Exception {
+        mainCharacter = new Character(CharacterRace.DWARF);
+        assertEquals(1, mainCharacter.getConstitutionModifier());
+        assertEquals(-1, mainCharacter.getCharismaModifier());
+    }
+
+    @Test
+    public void dwarfConstitutionModifierIsDoubledForHitPointGainIfPositive() throws Exception {
+        mainCharacter = new Character(CharacterRace.DWARF, 10, 10, 12, 10, 10, 10);
+        // doubled (1 basemod + 1 racemod)
+        assertEquals(9, mainCharacter.getMaxHitPoints());
+
+        mainCharacter = new Character(CharacterRace.DWARF, 10, 10, 6, 10, 10, 10);
+        // not doubled (-2 basemod + 1 racemod)
+        assertEquals(4, mainCharacter.getMaxHitPoints());
+    }
+
+    @Test
+    public void dwarfHasPlus2ToAttackRollAndDamageVersusOrc() throws Exception {
+        mainCharacter = new Character(CharacterRace.HUMAN);
+        worstCharacter = new Character(CharacterRace.ORC);
+        mainCharacter.attack(worstCharacter, 10); // orcs have base armor class of 12
+        assertUndamaged(worstCharacter);
+
+        mainCharacter = new Character(CharacterRace.DWARF);
+
+        mainCharacter.attack(worstCharacter, 10); // 10 + 2 == 12, so meet the base armor class
+        assertHpLost(3, worstCharacter);
+
+        mainCharacter.attack(worstCharacter,20);
+        assertHpLost(9, worstCharacter);
+    }
+
+    @Test
+    public void elfModifiers() throws Exception {
+        mainCharacter = new Character(CharacterRace.ELF);
+        assertEquals(1, mainCharacter.getDexterityModifier());
+        assertEquals(-1, mainCharacter.getConstitutionModifier());
+    }
+
+    @Test
+    public void elfHasPlusOneToCriticalRange() throws Exception {
+        mainCharacter = new Character(CharacterRace.ELF);
+
+        mainCharacter.attack(worstCharacter, 19);
+
+        assertHpLost(2, worstCharacter);
+
+        mainCharacter.attack(worstCharacter, 20);
+
+        assertHpLost(4, worstCharacter);
+    }
+
+    @Test
+    public void elfHasPlus2ArmorClassWhenAttackedByOrcs() throws Exception {
+        mainCharacter = new Character(CharacterRace.HUMAN);
+        worstCharacter = new Character(CharacterRace.ORC);
+
+        worstCharacter.attack(mainCharacter, 9); // orcs have +2 to attack rolls
+        assertHpLost(3, mainCharacter);
+
+        mainCharacter = new Character(CharacterRace.ELF);
+
+        worstCharacter.attack(mainCharacter, 9);
+        assertUndamaged(mainCharacter);
+
+        worstCharacter.attack(mainCharacter, 10);
+        assertUndamaged(mainCharacter);
+
+        worstCharacter.attack(mainCharacter, 11);
+        assertHpLost(3, mainCharacter); // orcs have +2 str mod
+    }
+
+    @Test
+    public void halflingModifiers() throws Exception {
+        // +1 to Dexterity Modifier, -1 to Strength Modifier
+        mainCharacter = new Character(CharacterRace.HALFLING);
+        assertEquals(1, mainCharacter.getDexterityModifier());
+        assertEquals(-1, mainCharacter.getStrengthModifier());
+    }
+
+    @Test
+    public void halflingsHavePlus2ArmorClassWhenAttackedByNonHalflings() throws Exception {
+        mainCharacter = new Character(CharacterRace.HALFLING);
+        worstCharacter.attack(mainCharacter, 11); // halflings have +1 dex, so AC is 11
+        assertUndamaged(mainCharacter);
+
+        worstCharacter = new Character(CharacterRace.HALFLING);
+        worstCharacter.attack(mainCharacter, 12); //
+        assertHpLost(1, mainCharacter);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void halflingsCannotHaveEvilAlignment() throws Exception {
+        mainCharacter = new Character(CharacterRace.HALFLING);
+        mainCharacter.setAlignment(Alignment.EVIL);
+    }
+
     private void assertXpGained(int xp, Character mainCharacter) {
         assertEquals(xp, mainCharacter.getXP());
     }
 
     private void assertHpLost(int hpLost, Character character) {
-        assertEquals(character.getMaxHitPoints() - hpLost, character.hitPoints);
+        String message = "Expected character to lose " + hpLost + " hitpoints, but lost " + (character.getMaxHitPoints() - character.hitPoints);
+        assertEquals(message, character.getMaxHitPoints() - hpLost, character.hitPoints);
     }
 
     private void assertUndamaged(Character character) {
