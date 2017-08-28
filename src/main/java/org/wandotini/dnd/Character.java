@@ -1,5 +1,7 @@
 package org.wandotini.dnd;
 
+import org.wandotini.dnd.armor.Armor;
+import org.wandotini.dnd.armor.NoArmor;
 import org.wandotini.dnd.weapons.Unarmed;
 import org.wandotini.dnd.weapons.Weapon;
 
@@ -18,6 +20,7 @@ public class Character {
 	private CharacterClass myClass = CharacterClass.UNCLASSED; // TODO get rid of?
 	private CharacterRace race = CharacterRace.HUMAN;
 	private Weapon weapon = new Unarmed();
+	private Armor armor = new NoArmor();
 
 	// TODO consolidate constructors?
 	public Character(){
@@ -127,7 +130,7 @@ public class Character {
             armorClass += getDexterityModifier();
 
         // racial bonuses
-		return armorClass + getRacialArmorClassBonusVersus(attacker);
+		return armorClass + getRacialArmorClassBonusVersus(attacker) + armor.armorClassBonus();
     }
 
 	private int getRacialArmorClassBonusVersus(Character attacker) {
@@ -339,4 +342,9 @@ public class Character {
 		this.weapon = weapon;
 	}
 
+	public void equip(Armor armor) {
+		if (! armor.canBeEquippedBy(this))
+			throw new IllegalStateException();
+		this.armor = armor;
+	}
 }

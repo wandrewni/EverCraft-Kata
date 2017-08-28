@@ -2,6 +2,8 @@ package org.wandotini.dnd;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.wandotini.dnd.armor.LeatherArmor;
+import org.wandotini.dnd.armor.PlateArmor;
 import org.wandotini.dnd.weapons.ElvenLongsword;
 import org.wandotini.dnd.weapons.Longsword;
 import org.wandotini.dnd.weapons.Nunchucks;
@@ -642,6 +644,41 @@ public class CharacterTest {
         mainCharacter.equip(new Nunchucks());
         mainCharacter.attack(worstCharacter, 10);
         assertHpLost(6, worstCharacter);
+    }
+
+    @Test
+    public void leatherArmorAddsTwoToArmorClass() throws Exception {
+        mainCharacter.equip(new LeatherArmor());
+        worstCharacter.attack(mainCharacter, 11);
+        assertUndamaged(mainCharacter);
+        worstCharacter.attack(mainCharacter, 13);
+        assertHpLost(1, mainCharacter);
+    }
+
+    @Test
+    public void plateArmorAddsEightToArmorClass() throws Exception {
+        mainCharacter = new Character(CharacterRace.DWARF);
+        mainCharacter.equip(new PlateArmor());
+        worstCharacter.attack(mainCharacter, 17);
+        assertUndamaged(mainCharacter);
+        worstCharacter.attack(mainCharacter, 18);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void mustBeDwarfOrFighterToWearPlateArmor() throws Exception {
+        mainCharacter.equip(new PlateArmor());
+    }
+
+    @Test
+    public void dwarfCanWearPlateArmor() throws Exception {
+        mainCharacter = new Character(CharacterRace.DWARF);
+        mainCharacter.equip(new PlateArmor());
+    }
+
+    @Test
+    public void fighterCanWearPlateArmor() throws Exception {
+        mainCharacter = new Character(CharacterClass.FIGHTER);
+        mainCharacter.equip(new PlateArmor());
     }
 
     private void assertXpGained(int xp, Character mainCharacter) {
