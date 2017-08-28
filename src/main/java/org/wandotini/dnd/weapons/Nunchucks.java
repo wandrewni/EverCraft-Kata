@@ -1,3 +1,8 @@
+package org.wandotini.dnd.weapons;
+
+import org.wandotini.dnd.Character;
+import org.wandotini.dnd.CharacterClass;
+
 public class Nunchucks extends Weapon {
     public Nunchucks(){
         super(6, 0, -4, 0);

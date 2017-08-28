@@ -1,3 +1,7 @@
+package org.wandotini.dnd;
+
+import org.wandotini.dnd.weapons.Unarmed;
+import org.wandotini.dnd.weapons.Weapon;
 
 import java.util.EnumSet;
 

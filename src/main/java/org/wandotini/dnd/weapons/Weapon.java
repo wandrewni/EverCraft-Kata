@@ -1,3 +1,7 @@
+package org.wandotini.dnd.weapons;
+
+import org.wandotini.dnd.Character;
+
 public class Weapon {
     protected int baseDamage;
     protected int bonusDamage;

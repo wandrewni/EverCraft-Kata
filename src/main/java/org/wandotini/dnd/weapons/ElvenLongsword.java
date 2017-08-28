@@ -1,3 +1,8 @@
+package org.wandotini.dnd.weapons;
+
+import org.wandotini.dnd.Character;
+import org.wandotini.dnd.CharacterRace;
+
 public class ElvenLongsword extends Weapon {
     public ElvenLongsword() {
         super(5, 1, 1, 0);

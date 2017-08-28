@@ -1,5 +1,11 @@
+package org.wandotini.dnd;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.wandotini.dnd.weapons.ElvenLongsword;
+import org.wandotini.dnd.weapons.Longsword;
+import org.wandotini.dnd.weapons.Nunchucks;
+import org.wandotini.dnd.weapons.WarAxePlus2;
 
 import static org.junit.Assert.assertEquals;
 
