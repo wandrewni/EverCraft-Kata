@@ -21,6 +21,7 @@ public class Character {
 	private CharacterRace race = CharacterRace.HUMAN;
 	private Weapon weapon = new Unarmed();
 	private Armor armor = new NoArmor();
+	private Shield shield = new NoShield();
 
 	// TODO consolidate constructors?
 	public Character(){
@@ -93,13 +94,19 @@ public class Character {
 	}
 
     public void attack(Character defender, int dieRoll){
-		if (isCriticalHit(dieRoll)) {
+		boolean criticalHit = isCriticalHit(dieRoll);
+		if (criticalHit || attackHits(defender, dieRoll)) {
+			applyDamage(defender, criticalHit);
 			gainXp();
-			defender.hitPoints -= Math.max(getCritDamageModifierVersus(defender) * baseDamageVersus(defender), 1);
-		} else if (attackHits(defender, dieRoll)) {
-			gainXp();
-			defender.hitPoints -= Math.max(baseDamageVersus(defender), 1);
 		}
+	}
+
+	private void applyDamage(Character defender, boolean critical) {
+		int multiplier = 1;
+		if (critical)
+            multiplier = getCritDamageMultiplierVersus(defender);
+		int damage = Math.max(multiplier * baseDamageVersus(defender), 1);
+		defender.hitPoints -= Math.max(damage - defender.armor.damageReduction(), 0);
 	}
 
 	private boolean isCriticalHit(int dieRoll) {
@@ -107,7 +114,7 @@ public class Character {
 		return dieRoll + criticalRangeBonus >= 20;
 	}
 
-	private int getCritDamageModifierVersus(Character defender) {
+	private int getCritDamageMultiplierVersus(Character defender) {
 		boolean paladinFightingEvil = CharacterClass.PALADIN == myClass && Alignment.EVIL == defender.getAlignment();
 		boolean rogue = CharacterClass.ROGUE == myClass;
 		int classModifier = paladinFightingEvil || rogue ? 3 : 2;
@@ -130,7 +137,7 @@ public class Character {
             armorClass += getDexterityModifier();
 
         // racial bonuses
-		return armorClass + getRacialArmorClassBonusVersus(attacker) + armor.armorClassBonus();
+		return armorClass + getRacialArmorClassBonusVersus(attacker) + armor.armorClassBonus(this) + shield.armorClassBonus();
     }
 
 	private int getRacialArmorClassBonusVersus(Character attacker) {
@@ -144,7 +151,12 @@ public class Character {
 
 	private int attackModifierVersus(Character opponent) {
 		int abilityModifier = CharacterClass.ROGUE == myClass ? getDexterityModifier() : getStrengthModifier();
-		return abilityModifier + getAttackRollBonusForLevel() + getAttackRollBonusAgainst(opponent) + weapon.attackModifier(this, opponent);
+		return abilityModifier +
+				getAttackRollBonusForLevel() +
+				getAttackRollBonusAgainst(opponent) +
+				weapon.attackModifier(this, opponent) +
+				armor.attackBonus(this) +
+				shield.attackModifier(this);
 	}
 
 	private int getAttackRollBonusAgainst(Character opponent) {
@@ -346,5 +358,9 @@ public class Character {
 		if (! armor.canBeEquippedBy(this))
 			throw new IllegalStateException();
 		this.armor = armor;
+	}
+
+	public void equip(Shield shield) {
+		this.shield = shield;
 	}
 }

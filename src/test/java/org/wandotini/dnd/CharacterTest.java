@@ -1,8 +1,11 @@
 package org.wandotini.dnd;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.wandotini.dnd.armor.ElvenChainmail;
 import org.wandotini.dnd.armor.LeatherArmor;
+import org.wandotini.dnd.armor.LeatherArmorOfDamageReduction;
 import org.wandotini.dnd.armor.PlateArmor;
 import org.wandotini.dnd.weapons.ElvenLongsword;
 import org.wandotini.dnd.weapons.Longsword;
@@ -12,17 +15,13 @@ import org.wandotini.dnd.weapons.WarAxePlus2;
 import static org.junit.Assert.assertEquals;
 
 public class CharacterTest {
-
-    private static final int BASE_HP = 5;
     private Character mainCharacter;
     private Character worstCharacter;
 
     @Before
     public void setup() {
-
         mainCharacter = new Character();
         worstCharacter = new Character();
-
     }
 
     @Test
@@ -309,14 +308,11 @@ public class CharacterTest {
     @Test
     public void monkAddsWisdomToDexterityModifierForDefending() throws Exception {
         mainCharacter = new Character(CharacterClass.MONK, 10, 14, 10, 14, 10, 10);
-        worstCharacter.attack(mainCharacter, 13);
-
-        assertUndamaged(mainCharacter);
+        assertAttackFails(13);
 
         worstCharacter = new Character(CharacterClass.ROGUE);
 
-        worstCharacter.attack(mainCharacter, 11);
-        assertUndamaged(mainCharacter);
+        assertAttackFails(11);
 
         worstCharacter.attack(mainCharacter, 12);
         assertHpLost(1, mainCharacter);
@@ -326,9 +322,7 @@ public class CharacterTest {
     public void monkDoesntAddNegativeWisdomToDefendingModifier() throws Exception {
         mainCharacter = new Character(CharacterClass.MONK, 10, 10, 10, 1, 10, 10);
 
-        worstCharacter.attack(mainCharacter, 9);
-
-        assertUndamaged(mainCharacter);
+        assertAttackFails(9);
     }
 
     @Test
@@ -528,11 +522,8 @@ public class CharacterTest {
 
         mainCharacter = new Character(CharacterRace.ELF);
 
-        worstCharacter.attack(mainCharacter, 9);
-        assertUndamaged(mainCharacter);
-
-        worstCharacter.attack(mainCharacter, 10);
-        assertUndamaged(mainCharacter);
+        assertAttackFails(9);
+        assertAttackFails(10);
 
         worstCharacter.attack(mainCharacter, 11);
         assertHpLost(3, mainCharacter); // orcs have +2 str mod
@@ -549,10 +540,9 @@ public class CharacterTest {
     @Test
     public void halflingsHavePlus2ArmorClassWhenAttackedByNonHalflings() throws Exception {
         mainCharacter = new Character(CharacterRace.HALFLING);
-        worstCharacter.attack(mainCharacter, 11); // halflings have +1 dex, so AC is 11
-        assertUndamaged(mainCharacter);
+        assertAttackFails(11);
 
-        worstCharacter = new Character(CharacterRace.HALFLING);
+        worstCharacter = new Character(CharacterRace.HALFLING, 12, 10, 10, 10, 10, 10);
         worstCharacter.attack(mainCharacter, 12); //
         assertHpLost(1, mainCharacter);
     }
@@ -636,21 +626,19 @@ public class CharacterTest {
 
     @Test
     public void nunchucksHaveMinus4PenaltyToAttackWhenUsedByNonMonk() throws Exception {
-        this.mainCharacter.equip(new Nunchucks());
-        mainCharacter.attack(worstCharacter, 13);
-        assertUndamaged(worstCharacter);
+        worstCharacter.equip(new Nunchucks());
+        assertAttackFails(13);
 
-        mainCharacter = new Character(CharacterClass.MONK);
-        mainCharacter.equip(new Nunchucks());
-        mainCharacter.attack(worstCharacter, 10);
-        assertHpLost(6, worstCharacter);
+        worstCharacter = new Character(CharacterClass.MONK);
+        worstCharacter.equip(new Nunchucks());
+        worstCharacter.attack(mainCharacter, 10);
+        assertHpLost(6, mainCharacter);
     }
 
     @Test
     public void leatherArmorAddsTwoToArmorClass() throws Exception {
         mainCharacter.equip(new LeatherArmor());
-        worstCharacter.attack(mainCharacter, 11);
-        assertUndamaged(mainCharacter);
+        assertAttackFails(11);
         worstCharacter.attack(mainCharacter, 13);
         assertHpLost(1, mainCharacter);
     }
@@ -659,8 +647,7 @@ public class CharacterTest {
     public void plateArmorAddsEightToArmorClass() throws Exception {
         mainCharacter = new Character(CharacterRace.DWARF);
         mainCharacter.equip(new PlateArmor());
-        worstCharacter.attack(mainCharacter, 17);
-        assertUndamaged(mainCharacter);
+        assertAttackFails(17);
         worstCharacter.attack(mainCharacter, 18);
     }
 
@@ -679,6 +666,85 @@ public class CharacterTest {
     public void fighterCanWearPlateArmor() throws Exception {
         mainCharacter = new Character(CharacterClass.FIGHTER);
         mainCharacter.equip(new PlateArmor());
+    }
+
+    @Test
+    public void magicalLeatherOfDamageReductionAdds2toArmorClass() throws Exception {
+        mainCharacter.equip(new LeatherArmorOfDamageReduction());
+        worstCharacter.equip(new Longsword());
+        assertAttackFails(10);
+        assertAttackFails(11);
+        worstCharacter.attack(mainCharacter, 12);
+        assertHpLost(3, mainCharacter);
+    }
+
+    @Test
+    public void magicalLeatherOfDamageReductionReducesDamageBy2() throws Exception {
+        mainCharacter.equip(new LeatherArmorOfDamageReduction());
+        assertAttackFails(12);
+        assertAttackFails(20);
+
+        worstCharacter.equip(new Longsword()); // +5 to damage
+        worstCharacter.attack(mainCharacter, 15);
+        assertHpLost(3, mainCharacter);
+    }
+
+    @Test
+    public void elvenChainmailAddsPlus5ToArmorClassForNonElves() throws Exception {
+        mainCharacter.equip(new ElvenChainmail());
+        assertAttackFails(14);
+        worstCharacter.attack(mainCharacter, 15);
+        assertHpLost(1, mainCharacter);
+    }
+
+    @Test
+    public void elvenChainmailAddsPlus8ToArmorClassForElves() throws Exception {
+        mainCharacter = new Character(CharacterRace.ELF);
+        mainCharacter.equip(new ElvenChainmail());
+        assertAttackFails(18); // elves have +1 AC
+        worstCharacter.attack(mainCharacter, 19);
+        assertHpLost(1, mainCharacter);
+    }
+
+    @Test
+    public void elvenChainmailGivesElvesPlus1ToAttack() throws Exception {
+        worstCharacter.equip(new ElvenChainmail());
+        assertAttackFails(9);
+
+        worstCharacter = new Character(CharacterRace.ELF);
+        worstCharacter.equip(new ElvenChainmail());
+
+        worstCharacter.attack(mainCharacter, 9);
+        assertHpLost(1, mainCharacter);
+    }
+
+    @Test
+    public void shieldAddsPlus3ToArmorClass() throws Exception {
+        mainCharacter.equip(new Shield());
+        assertAttackFails(12);
+    }
+
+    @Test
+    public void shieldReducesAttackBy4() throws Exception {
+        worstCharacter.equip(new Shield());
+        assertAttackFails(13);
+
+        worstCharacter.attack(mainCharacter, 14);
+        assertHpLost(1, mainCharacter);
+    }
+
+    @Test
+    public void shieldReducesAttackBy2ForFighters() throws Exception {
+        worstCharacter = new Character(CharacterClass.FIGHTER);
+        worstCharacter.equip(new Shield());
+        assertAttackFails(11);
+        worstCharacter.attack(mainCharacter, 12); // TODO possibly have an assertAttackSucceeds method
+        assertHpLost(1, mainCharacter);
+    }
+
+    private void assertAttackFails(int roll) {
+        worstCharacter.attack(mainCharacter, roll);
+        assertUndamaged(mainCharacter);
     }
 
     private void assertXpGained(int xp, Character mainCharacter) {
