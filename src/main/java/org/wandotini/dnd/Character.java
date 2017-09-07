@@ -85,19 +85,16 @@ public class Character {
 
 	private void initAlignment() {
 		if (CharacterClass.PALADIN == myClass)
-            alignment = Alignment.GOOD;
+            alignment = Alignment.GOOD; // TODO possibly have validation check that disallows selecting other options
 	}
 
 	private void initHitPoints() {
-        this.hitPoints = getHitpointIncrease();
-        this.maxHitPoints = hitPoints;
+        this.maxHitPoints = getHitpointIncrease();
+        this.hitPoints = maxHitPoints;
     }
 
 	private void initArmorClass() {
-		if (CharacterRace.ORC == race)
-			baseArmorClass = 12;
-		else
-			baseArmorClass = 10;
+		baseArmorClass = CharacterRace.ORC == race ? 12 : 10;
 	}
 
     public void attack(Character defender, int dieRoll){
@@ -135,7 +132,6 @@ public class Character {
     private int getArmorClassVersusAttacker(Character attacker){
         int armorClass = baseArmorClass;
 
-        // class modifiers
         if (myClass == CharacterClass.MONK)
             armorClass += Math.max(getWisdomModifier(), 0);
         if (attacker.myClass == CharacterClass.ROGUE)
@@ -143,13 +139,17 @@ public class Character {
         else
             armorClass += getDexterityModifier();
 
-		armorClass += items.stream()
-				.map(Item::armorClassBonus)
-				.reduce(0, add());
-
 		// racial bonuses
-		return armorClass + getRacialArmorClassBonusVersus(attacker) + armor.armorClassBonus(this) + shield.armorClassBonus();
+		return armorClass + getRacialArmorClassBonusVersus(attacker) + getEquipmentArmorClassBonuses();
     }
+
+	private int getEquipmentArmorClassBonuses() {
+		return armor.armorClassBonus(this) +
+				shield.armorClassBonus() +
+				items.stream()
+						.map(Item::armorClassBonus)
+						.reduce(0, add());
+	}
 
 	private int getRacialArmorClassBonusVersus(Character attacker) {
 		boolean elfAttackedByOrc = CharacterRace.ELF == race && CharacterRace.ORC == attacker.getRace();
@@ -162,27 +162,10 @@ public class Character {
 
 	private int attackModifierVersus(Character opponent) {
 		int abilityModifier = CharacterClass.ROGUE == myClass ? getDexterityModifier() : getStrengthModifier();
-		int itemAttackBonus = items.stream()
-				.map(item -> item.attackModifier(this, opponent))
-				.reduce(0, add());
 		return abilityModifier +
 				getAttackRollBonusForLevel() +
 				getAttackRollBonusAgainst(opponent) +
-				weapon.attackModifier(this, opponent) +
-				armor.attackModifier(this) +
-				shield.attackModifier(this) +
-				itemAttackBonus;
-	}
-
-	private int getAttackRollBonusAgainst(Character opponent) {
-		int bonus = 0;
-		boolean paladinFightingEvil = CharacterClass.PALADIN == myClass && Alignment.EVIL == opponent.getAlignment();
-		boolean dwarfFightingOrc = CharacterRace.DWARF == race && CharacterRace.ORC == opponent.getRace();
-		if (paladinFightingEvil)
-			bonus += 2;
-		if (dwarfFightingOrc)
-			bonus += 2;
-		return bonus;
+				getEquipmentAttackModifiers(opponent);
 	}
 
 	private int getAttackRollBonusForLevel() {
@@ -199,6 +182,26 @@ public class Character {
 			default:
 				return level / 2;
 		}
+	}
+
+	private int getAttackRollBonusAgainst(Character opponent) {
+		int bonus = 0;
+		boolean paladinFightingEvil = CharacterClass.PALADIN == myClass && Alignment.EVIL == opponent.getAlignment();
+		boolean dwarfFightingOrc = CharacterRace.DWARF == race && CharacterRace.ORC == opponent.getRace();
+		if (paladinFightingEvil)
+			bonus += 2;
+		if (dwarfFightingOrc)
+			bonus += 2;
+		return bonus;
+	}
+
+	private int getEquipmentAttackModifiers(Character opponent) {
+		return weapon.attackModifier(this, opponent) +
+				armor.attackModifier(this) +
+				shield.attackModifier(this) +
+				items.stream()
+						.map(item -> item.attackModifier(this, opponent))
+						.reduce(0, add());
 	}
 
 	private int baseDamageVersus(Character opponent) {
@@ -225,26 +228,11 @@ public class Character {
 		maxHitPoints += getHitpointIncrease();
 	}
 
-
 	private int getHitpointIncrease() {
-		int baseHitpoints;
-		switch (myClass) {
-			case FIGHTER:
-				baseHitpoints = 10;
-				break;
-			case MONK:
-				baseHitpoints = 6;
-				break;
-			case PALADIN:
-				baseHitpoints = 8;
-				break;
-			default:
-				baseHitpoints = 5;
-		}
 		int constitutionBonus = getConstitutionModifier();
 		if (race == CharacterRace.DWARF && constitutionBonus > 0)
 			constitutionBonus *= 2;
-		return Math.max(baseHitpoints + constitutionBonus,1);
+		return Math.max(myClass.baseHitPoints() + constitutionBonus,1);
 	}
 
 	private int getBaseModifier(int ability) {
@@ -322,10 +310,9 @@ public class Character {
 	}
 
 	public int getStrength() {
-		int strengthBonus = items.stream()
+		return strength + items.stream()
 				.map(Item::strengthBonus)
 				.reduce(0, add());
-		return strength + strengthBonus;
 	}
 
 	public int getDexterity() {
