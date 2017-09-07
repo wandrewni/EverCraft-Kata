@@ -2,10 +2,13 @@ package org.wandotini.dnd;
 
 import org.wandotini.dnd.armor.Armor;
 import org.wandotini.dnd.armor.NoArmor;
+import org.wandotini.dnd.items.Item;
 import org.wandotini.dnd.weapons.Unarmed;
 import org.wandotini.dnd.weapons.Weapon;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 public class Character {
 
@@ -22,6 +25,7 @@ public class Character {
 	private Weapon weapon = new Unarmed();
 	private Armor armor = new NoArmor();
 	private Shield shield = new NoShield();
+	private List<Item> items = new ArrayList<Item>();
 
 	// TODO consolidate constructors?
 	public Character(){
@@ -136,7 +140,11 @@ public class Character {
         else
             armorClass += getDexterityModifier();
 
-        // racial bonuses
+		for (Item item : items) {
+			armorClass += item.armorClassBonus();
+		}
+
+		// racial bonuses
 		return armorClass + getRacialArmorClassBonusVersus(attacker) + armor.armorClassBonus(this) + shield.armorClassBonus();
     }
 
@@ -151,12 +159,16 @@ public class Character {
 
 	private int attackModifierVersus(Character opponent) {
 		int abilityModifier = CharacterClass.ROGUE == myClass ? getDexterityModifier() : getStrengthModifier();
+		int itemAttackBonus = 0;
+		for (Item item : items)
+			itemAttackBonus += item.attackBonusVersus(this, opponent);
 		return abilityModifier +
 				getAttackRollBonusForLevel() +
 				getAttackRollBonusAgainst(opponent) +
 				weapon.attackModifier(this, opponent) +
 				armor.attackBonus(this) +
-				shield.attackModifier(this);
+				shield.attackModifier(this) +
+				itemAttackBonus;
 	}
 
 	private int getAttackRollBonusAgainst(Character opponent) {
@@ -237,7 +249,7 @@ public class Character {
 	}
 
 	public int getStrengthModifier() {
-		int base = getBaseModifier(strength);
+		int base = getBaseModifier(getStrength());
 		if (race == CharacterRace.ORC)
     		return 2 + base;
     	if (race == CharacterRace.HALFLING)
@@ -307,7 +319,10 @@ public class Character {
 	}
 
 	public int getStrength() {
-		return strength;
+		int strengthBonus = 0;
+		for (Item item : items)
+			strengthBonus += item.strengthBonus();
+		return strength + strengthBonus;
 	}
 
 	public int getDexterity() {
@@ -362,5 +377,9 @@ public class Character {
 
 	public void equip(Shield shield) {
 		this.shield = shield;
+	}
+
+	public void equip(Item item) {
+		this.items.add(item);
 	}
 }

@@ -1,5 +1,6 @@
 package org.wandotini.dnd;
 
+import com.sun.tools.javac.jvm.Items;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -7,6 +8,9 @@ import org.wandotini.dnd.armor.ElvenChainmail;
 import org.wandotini.dnd.armor.LeatherArmor;
 import org.wandotini.dnd.armor.LeatherArmorOfDamageReduction;
 import org.wandotini.dnd.armor.PlateArmor;
+import org.wandotini.dnd.items.AmuletOfTheHeavens;
+import org.wandotini.dnd.items.BeltOfGiantStrength;
+import org.wandotini.dnd.items.RingOfProtection;
 import org.wandotini.dnd.weapons.ElvenLongsword;
 import org.wandotini.dnd.weapons.Longsword;
 import org.wandotini.dnd.weapons.Nunchucks;
@@ -740,6 +744,52 @@ public class CharacterTest {
         assertAttackFails(11);
         worstCharacter.attack(mainCharacter, 12); // TODO possibly have an assertAttackSucceeds method
         assertHpLost(1, mainCharacter);
+    }
+
+    @Test
+    public void canEquipMultipleItemsThatGiveACBonuses() throws Exception {
+        mainCharacter.equip(new RingOfProtection());
+        assertAttackFails(11);
+        mainCharacter.equip(new RingOfProtection());
+        assertAttackFails(13);
+    }
+
+    @Test
+    public void beltOfGiantStrengthAddsFourToStrength() throws Exception {
+        mainCharacter.equip(new BeltOfGiantStrength());
+        mainCharacter.equip(new RingOfProtection());
+        assertEquals(mainCharacter.getStrength(), 14);
+    }
+
+    @Test
+    public void amuletOfTheHeavensAddsOneToAttackAgainstNeutralEnemiesAndTwoAgainstEvilEnemies() throws Exception {
+        worstCharacter.equip(new AmuletOfTheHeavens());
+        mainCharacter.setAlignment(Alignment.GOOD);
+        assertAttackFails(8);
+        assertAttackFails(9);
+        mainCharacter.setAlignment(Alignment.NEUTRAL);
+        worstCharacter.attack(mainCharacter, 9);
+        assertHpLost(1, mainCharacter);
+        mainCharacter = new Character();
+        mainCharacter.setAlignment(Alignment.EVIL);
+        worstCharacter.attack(mainCharacter, 8);
+        assertHpLost(1, mainCharacter);
+    }
+
+    @Test
+    public void amuletOfTheHeavensBonusIsDoubledForPaladin() throws Exception {
+        worstCharacter = new Character(CharacterClass.PALADIN);
+        worstCharacter.equip(new AmuletOfTheHeavens());
+        mainCharacter.setAlignment(Alignment.GOOD);
+        assertAttackFails(6);
+        assertAttackFails(7);
+        mainCharacter.setAlignment(Alignment.NEUTRAL);
+        worstCharacter.attack(mainCharacter, 8);
+        assertHpLost(1, mainCharacter);
+        mainCharacter = new Character();
+        mainCharacter.setAlignment(Alignment.EVIL);
+        worstCharacter.attack(mainCharacter, 6);
+        assertHpLost(3, mainCharacter);
     }
 
     private void assertAttackFails(int roll) {

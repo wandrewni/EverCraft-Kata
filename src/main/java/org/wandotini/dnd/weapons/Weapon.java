@@ -2,13 +2,13 @@ package org.wandotini.dnd.weapons;
 
 import org.wandotini.dnd.Character;
 
-public class Weapon {
+public abstract class Weapon {
     protected int baseDamage;
     protected int bonusDamage;
     protected int attackModifier;
     protected int critModifier;
 
-    public Weapon(int baseDamage, int bonusDamage, int attackModifier, int critModifier){
+    Weapon(int baseDamage, int bonusDamage, int attackModifier, int critModifier){
         this.baseDamage = baseDamage;
         this.bonusDamage = bonusDamage;
         this.attackModifier = attackModifier;
