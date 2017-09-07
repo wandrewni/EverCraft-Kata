@@ -28,7 +28,6 @@ public class CharacterTest {
 
     @Test
     public void testCanSetNGetName() {
-
         defender.setName("Jandrew");
 
         assertEquals("Jandrew", defender.getName());
@@ -36,7 +35,6 @@ public class CharacterTest {
 
     @Test
     public void testCanSetNGetAlignment() {  //uses the enum you made in Alignment.java
-
         defender.setAlignment(Alignment.EVIL);
 
         assertEquals(Alignment.EVIL, defender.getAlignment());
@@ -44,10 +42,8 @@ public class CharacterTest {
 
     @Test
     public void testVerifyArmorNHitPointValue() {
-
         assertEquals(10, defender.baseArmorClass);
         assertEquals(5, defender.hitPoints);
-
     }
 
     @Test
@@ -261,13 +257,11 @@ public class CharacterTest {
 
     @Test
     public void monkDoes3DamageOnSuccessfulHitAnd6onSuccessfulCrit() throws Exception {
-        defender = new Character(CharacterClass.MONK);
-        defender.attack(attacker, 10);
-        assertHpLost(3, attacker);
+        attacker = new Character(CharacterClass.MONK);
+        assertSuccessfulAttack(10, 3);
 
-        attacker = new Character();
-        defender.attack(attacker, 20);
-        assertHpLost(6, attacker);
+        defender = new Character();
+        assertSuccessfulAttack(20, 6);
     }
 
     @Test
@@ -291,27 +285,22 @@ public class CharacterTest {
 
     @Test
     public void monkAttackRollIsIncreasedEverySecondAndThirdLevels() throws Exception {
-        defender = new Character(CharacterClass.MONK);
+        attacker = new Character(CharacterClass.MONK);
 
-        defender.attack(attacker, 9);
-        assertUndamaged(attacker);
+        assertFailedAttack(9);
 
-        levelUp(defender, 1);
-        defender.attack(attacker, 9);
-        assertHpLost(3, attacker);
+        levelUp(attacker, 1);
+        assertSuccessfulAttack(9, 3);
 
-        levelUp(defender, 1);
-        defender.attack(attacker, 8);
-        assertHpLost(6, attacker);
+        levelUp(attacker, 1);
+        assertSuccessfulAttack(8, 6);
 
-        attacker = new Character();
-        defender = new Character(CharacterClass.MONK);
-        levelUp(defender, 5);
+        attacker = new Character(CharacterClass.MONK);
+        defender = new Character();
+        levelUp(attacker, 5);
 
-        defender.attack(attacker, 5);
-        assertUndamaged(attacker);
-        defender.attack(attacker, 6);
-        assertHpLost(3, attacker);
+        assertFailedAttack(5);
+        assertSuccessfulAttack(6, 3);
     }
 
     @Test
@@ -324,66 +313,56 @@ public class CharacterTest {
 
     @Test
     public void paladinHasPlus2ToDamageWhenAttackingEvilCharacters() throws Exception {
-        defender = new Character(CharacterClass.PALADIN);
+        attacker = new Character(CharacterClass.PALADIN);
 
-        defender.attack(attacker, 10);
+        assertSuccessfulAttack(10, 1);
 
-        assertHpLost(1, attacker);
+        defender = new Character();
+        defender.setAlignment(Alignment.EVIL);
 
-        attacker = new Character();
-        attacker.setAlignment(Alignment.EVIL);
-
-        defender.attack(attacker, 10);
-        assertHpLost(3, attacker);
+        assertSuccessfulAttack(10, 3);
     }
 
     @Test
     public void paladinHasPlus2ToRollsWhenAttackingEvilCharacters() throws Exception {
-        defender = new Character(CharacterClass.PALADIN);
+        attacker = new Character(CharacterClass.PALADIN);
 
-        defender.attack(attacker, 9);
+        assertFailedAttack(9);
 
-        assertUndamaged(attacker);
+        defender = new Character();
+        defender.setAlignment(Alignment.EVIL);
 
-        attacker = new Character();
-        attacker.setAlignment(Alignment.EVIL);
+        assertSuccessfulAttack(9, 3);
 
-        defender.attack(attacker, 9);
-        assertHpLost(3, attacker);
+        defender = new Character();
+        defender.setAlignment(Alignment.EVIL);
 
-        defender.attack(attacker, 8);
-        assertHpLost(6, attacker);
+        assertSuccessfulAttack(8, 3);
     }
 
     @Test
     public void paladinDoesTripleDamageOnCritAgainstEvil() throws Exception {
-        defender = new Character(CharacterClass.PALADIN);
+        attacker = new Character(CharacterClass.PALADIN);
 
         // normal crit
-        defender.attack(attacker, 20);
-        assertHpLost(2, attacker);
+        assertSuccessfulAttack(20, 2);
 
         // evil crit
-        attacker = new Character();
-        attacker.setAlignment(Alignment.EVIL);
-        defender.attack(attacker, 20);
-
-        assertHpLost(9, attacker);
+        defender = new Character();
+        defender.setAlignment(Alignment.EVIL);
+        assertSuccessfulAttack(20, 9);
     }
 
     @Test
     public void paladinGetsPlusOneToAttackEachLevel() throws Exception {
-        defender = new Character(CharacterClass.PALADIN);
-        defender.attack(attacker, 9);
-        assertUndamaged(attacker);
+        attacker = new Character(CharacterClass.PALADIN);
+        assertFailedAttack(9);
 
-        levelUp(defender, 1);
-        defender.attack(attacker, 9);
-        assertHpLost(1, attacker);
+        levelUp(attacker, 1);
+        assertSuccessfulAttack(9, 1);
 
-        levelUp(defender, 1);
-        defender.attack(attacker, 8);
-        assertHpLost(2, attacker);
+        levelUp(attacker, 1);
+        assertSuccessfulAttack(8, 2);
     }
 
     @Test
@@ -415,11 +394,9 @@ public class CharacterTest {
 
     @Test
     public void orcsHavePlusTwoToArmorClass() throws Exception {
-        attacker = new Character(CharacterRace.ORC);
-        defender.attack(attacker, 10);
-        assertUndamaged(attacker);
-        defender.attack(attacker, 12);
-        assertHpLost(1, attacker);
+        defender = new Character(CharacterRace.ORC);
+        assertFailedAttack(10);
+        assertSuccessfulAttack(12, 1);
     }
 
     @Test
@@ -442,18 +419,15 @@ public class CharacterTest {
 
     @Test
     public void dwarfHasPlus2ToAttackRollAndDamageVersusOrc() throws Exception {
-        defender = new Character(CharacterRace.HUMAN);
-        attacker = new Character(CharacterRace.ORC);
-        defender.attack(attacker, 10); // orcs have base armor class of 12
-        assertUndamaged(attacker);
+        attacker = new Character(CharacterRace.HUMAN);
+        defender = new Character(CharacterRace.ORC);
+        assertFailedAttack(10);
 
-        defender = new Character(CharacterRace.DWARF);
+        attacker = new Character(CharacterRace.DWARF);
 
-        defender.attack(attacker, 10); // 10 + 2 == 12, so meet the base armor class
-        assertHpLost(3, attacker);
+        assertSuccessfulAttack(10, 3);
 
-        defender.attack(attacker,20);
-        assertHpLost(9, attacker);
+        assertSuccessfulAttack(20, 9);
     }
 
     @Test
@@ -465,15 +439,11 @@ public class CharacterTest {
 
     @Test
     public void elfHasPlusOneToCriticalRange() throws Exception {
-        defender = new Character(CharacterRace.ELF);
+        attacker = new Character(CharacterRace.ELF);
 
-        defender.attack(attacker, 19);
+        assertSuccessfulAttack(19, 2);
 
-        assertHpLost(2, attacker);
-
-        defender.attack(attacker, 20);
-
-        assertHpLost(4, attacker);
+        assertSuccessfulAttack(20, 4);
     }
 
     @Test
@@ -516,73 +486,61 @@ public class CharacterTest {
 
     @Test
     public void longSwordHasBaseDamageOf5() throws Exception {
-        Character mainCharacter = this.defender;
-        mainCharacter.equip(new Longsword());
-        this.defender.attack(attacker, 10);
-        assertHpLost(5, attacker);
+        attacker.equip(new Longsword());
+        assertSuccessfulAttack(10, 5);
     }
 
     @Test
     public void plus2WaraxeHasBaseDamageOfSixAndAdds2toAttackAndDamage() throws Exception {
-        defender.equip(new WarAxePlus2());
-        defender.attack(attacker, 8);
-        assertHpLost(8, attacker);
+        attacker.equip(new WarAxePlus2());
+        assertSuccessfulAttack(8, 8);
     }
 
     @Test
     public void plus2WaraxeHasTripleDamageOnCriticalForNonRogue() throws Exception {
-        defender.equip(new WarAxePlus2());
-        defender.attack(attacker, 20);
-        assertHpLost(24, attacker);
+        attacker.equip(new WarAxePlus2());
+        assertSuccessfulAttack(20, 24);
     }
 
     @Test
     public void plus2WaraxeHasQuadrupleDamageOnCriticalForRogue() throws Exception {
-        defender = new Character(CharacterClass.ROGUE);
-        Character mainCharacter = this.defender;
-        mainCharacter.equip(new WarAxePlus2());
-        this.defender.attack(attacker, 20);
-        assertHpLost(32, attacker);
+        attacker = new Character(CharacterClass.ROGUE);
+        attacker.equip(new WarAxePlus2());
+        assertSuccessfulAttack(20, 32);
     }
 
     @Test
     public void elvenLongswordHasBaseDamageOfFiveWithPlus1ToAttackAndDamage() throws Exception {
-        defender.equip(new ElvenLongsword());
-        defender.attack(attacker, 9);
-        assertHpLost(6, attacker);
+        attacker.equip(new ElvenLongsword());
+        assertSuccessfulAttack(9, 6);
     }
 
     @Test
     public void elvenLongSwordhasPlus2ToAttackAndDamageWhenWieldedByAnElf() throws Exception {
-        defender = new Character(CharacterRace.ELF);
-        defender.equip(new ElvenLongsword());
-        defender.attack(attacker, 8);
-        assertHpLost(7, attacker);
+        attacker = new Character(CharacterRace.ELF);
+        attacker.equip(new ElvenLongsword());
+        assertSuccessfulAttack(8, 7);
     }
 
     @Test
     public void elvenLongSwordhasPlus2ToAttackAndDamageWhenWieldedAgainstAnOrc() throws Exception {
-        attacker = new Character(CharacterRace.ORC);
-        defender.equip(new ElvenLongsword());
-        defender.attack(attacker, 10); // orcs have 12 ac
-        assertHpLost(7, attacker);
+        defender = new Character(CharacterRace.ORC);
+        attacker.equip(new ElvenLongsword());
+        assertSuccessfulAttack(10, 7);
     }
 
     @Test
     public void elvenLongSwordhasPlus5ToAttackAndDamageWhenWieldedByAnElfAgainstAnOrc() throws Exception {
-        defender = new Character(CharacterRace.ELF);
-        attacker = new Character(CharacterRace.ORC);
-        Character mainCharacter = this.defender;
-        mainCharacter.equip(new ElvenLongsword());
-        this.defender.attack(attacker, 7); // orcs have 12 ac
-        assertHpLost(10, attacker);
+        attacker = new Character(CharacterRace.ELF);
+        defender = new Character(CharacterRace.ORC);
+        attacker.equip(new ElvenLongsword());
+        assertSuccessfulAttack(7, 10);
     }
 
     @Test
     public void nunchucksDoSixPointsOfDamage() throws Exception {
-        this.defender.equip(new Nunchucks());
-        defender.attack(attacker, 16);
-        assertHpLost(6, attacker);
+        attacker.equip(new Nunchucks());
+        assertSuccessfulAttack(16, 6);
     }
 
     @Test
