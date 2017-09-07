@@ -5,10 +5,13 @@ import org.wandotini.dnd.armor.NoArmor;
 import org.wandotini.dnd.items.Item;
 import org.wandotini.dnd.weapons.Unarmed;
 import org.wandotini.dnd.weapons.Weapon;
+import org.wandotini.util.StreamUtils;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+
+import static org.wandotini.util.StreamUtils.add;
 
 public class Character {
 
@@ -140,9 +143,9 @@ public class Character {
         else
             armorClass += getDexterityModifier();
 
-		for (Item item : items) {
-			armorClass += item.armorClassBonus();
-		}
+		armorClass += items.stream()
+				.map(Item::armorClassBonus)
+				.reduce(0, add());
 
 		// racial bonuses
 		return armorClass + getRacialArmorClassBonusVersus(attacker) + armor.armorClassBonus(this) + shield.armorClassBonus();
@@ -159,9 +162,9 @@ public class Character {
 
 	private int attackModifierVersus(Character opponent) {
 		int abilityModifier = CharacterClass.ROGUE == myClass ? getDexterityModifier() : getStrengthModifier();
-		int itemAttackBonus = 0;
-		for (Item item : items)
-			itemAttackBonus += item.attackModifier(this, opponent);
+		int itemAttackBonus = items.stream()
+				.map(item -> item.attackModifier(this, opponent))
+				.reduce(0, add());
 		return abilityModifier +
 				getAttackRollBonusForLevel() +
 				getAttackRollBonusAgainst(opponent) +
@@ -319,9 +322,9 @@ public class Character {
 	}
 
 	public int getStrength() {
-		int strengthBonus = 0;
-		for (Item item : items)
-			strengthBonus += item.strengthBonus();
+		int strengthBonus = items.stream()
+				.map(Item::strengthBonus)
+				.reduce(0, add());
 		return strength + strengthBonus;
 	}
 
