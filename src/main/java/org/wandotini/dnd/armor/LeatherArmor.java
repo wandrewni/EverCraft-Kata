@@ -16,7 +16,7 @@ public class LeatherArmor extends Armor{
     }
 
     @Override
-    public int attackBonus(Character player) {
+    public int attackModifier(Character player) {
         return 0;
     }
 }

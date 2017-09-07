@@ -20,7 +20,7 @@ public class ElvenChainmail extends Armor {
     }
 
     @Override
-    public int attackBonus(Character player) {
+    public int attackModifier(Character player) {
         return isElf(player) ? 1 : 0;
     }
 

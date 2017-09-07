@@ -161,12 +161,12 @@ public class Character {
 		int abilityModifier = CharacterClass.ROGUE == myClass ? getDexterityModifier() : getStrengthModifier();
 		int itemAttackBonus = 0;
 		for (Item item : items)
-			itemAttackBonus += item.attackBonusVersus(this, opponent);
+			itemAttackBonus += item.attackModifier(this, opponent);
 		return abilityModifier +
 				getAttackRollBonusForLevel() +
 				getAttackRollBonusAgainst(opponent) +
 				weapon.attackModifier(this, opponent) +
-				armor.attackBonus(this) +
+				armor.attackModifier(this) +
 				shield.attackModifier(this) +
 				itemAttackBonus;
 	}

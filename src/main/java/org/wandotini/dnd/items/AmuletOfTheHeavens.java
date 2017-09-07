@@ -16,7 +16,7 @@ public class AmuletOfTheHeavens extends Item {
     }
 
     @Override
-    public int attackBonusVersus(Character wearer, Character defender) {
+    public int attackModifier(Character wearer, Character defender) {
         int attackBonus = 0;
         if (Alignment.NEUTRAL == defender.getAlignment())
             attackBonus += 1;
