@@ -1,6 +1,5 @@
 package org.wandotini.dnd.weapons;
 
-import org.wandotini.dnd.Character;
 import org.wandotini.dnd.CharacterClass;
 
 public class Unarmed extends Weapon {
@@ -9,8 +8,8 @@ public class Unarmed extends Weapon {
     }
 
     @Override
-    public int baseDamage(Character character) {
-        if (character.getCharacterClass() == CharacterClass.MONK)
+    public int baseDamage() {
+        if (wielder.getCharacterClass() == CharacterClass.MONK)
             return 3;
         else
             return baseDamage;

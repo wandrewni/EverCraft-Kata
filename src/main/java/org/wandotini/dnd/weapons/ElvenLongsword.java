@@ -9,16 +9,16 @@ public class ElvenLongsword extends Weapon {
     }
 
     @Override
-    public int bonusDamage(Character wielder, Character defender) {
-        return calcRacialBonus(wielder, defender);
+    public int bonusDamage(Character defender) {
+        return calcRacialBonus(defender);
     }
 
     @Override
-    public int attackModifier(Character wielder, Character defender) {
-        return calcRacialBonus(wielder, defender);
+    public int attackModifier(Character defender) {
+        return calcRacialBonus(defender);
     }
 
-    private int calcRacialBonus(Character wielder, Character defender) {
+    private int calcRacialBonus(Character defender) {
         boolean wieldedByElf = wielder.getRace() == CharacterRace.ELF;
         boolean againstOrc = defender.getRace() == CharacterRace.ORC;
         if (wieldedByElf && againstOrc)

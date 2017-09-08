@@ -7,6 +7,7 @@ public abstract class Weapon {
     protected int bonusDamage;
     protected int attackModifier;
     protected int critModifier;
+    protected Character wielder;
 
     Weapon(int baseDamage, int bonusDamage, int attackModifier, int critModifier){
         this.baseDamage = baseDamage;
@@ -15,19 +16,23 @@ public abstract class Weapon {
         this.critModifier = critModifier;
     }
 
-    public int baseDamage(Character character){
+    public int baseDamage(){
         return baseDamage;
     }
 
-    public int bonusDamage(Character wielder, Character defender){
+    public int bonusDamage(Character defender){
         return bonusDamage;
     }
 
-    public int attackModifier(Character wielder, Character defender){
+    public int attackModifier(Character defender){
         return attackModifier;
     }
 
     public int critModifier() {
         return critModifier;
+    }
+
+    public void setWielder(Character wielder) {
+        this.wielder = wielder;
     }
 }

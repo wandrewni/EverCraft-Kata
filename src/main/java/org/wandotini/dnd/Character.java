@@ -144,7 +144,7 @@ public class Character {
 	}
 
 	private int getEquipmentAttackModifiers(Character opponent) {
-		return weapon.attackModifier(this, opponent) +
+		return weapon.attackModifier(opponent) +
 				armor.attackModifier() +
 				shield.attackModifier(this) +
 				items.stream()
@@ -153,14 +153,14 @@ public class Character {
 	}
 
 	private int baseDamageVersus(Character opponent) {
-		int base = weapon.baseDamage(this);
+		int base = weapon.baseDamage();
 		boolean paladinFightingEvil = CharacterClass.PALADIN == myClass && Alignment.EVIL == opponent.getAlignment();
 		boolean dwarfFightingOrc = CharacterRace.DWARF == race && CharacterRace.ORC == opponent.getRace();
 		if (paladinFightingEvil)
 			base += 2;
 		if (dwarfFightingOrc)
 			base += 2;
-		return base + getStrengthModifier() + weapon.bonusDamage(this, opponent);
+		return base + getStrengthModifier() + weapon.bonusDamage(opponent);
 	}
 
 	private void gainXp() {
@@ -305,6 +305,7 @@ public class Character {
 
 	public void equip(Weapon weapon) {
 		this.weapon = weapon;
+		this.weapon.setWielder(this);
 	}
 
 	public void equip(Armor armor) {
