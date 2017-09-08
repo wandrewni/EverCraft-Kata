@@ -5,7 +5,7 @@ public class Shield {
         return 3;
     }
 
-    public int attackModifier(Character character) {
-        return character.getCharacterClass() == CharacterClass.FIGHTER ? -2 : -4;
+    public int attackModifier(Character wielder) {
+        return wielder.getCharacterClass() == CharacterClass.FIGHTER ? -2 : -4;
     }
 }

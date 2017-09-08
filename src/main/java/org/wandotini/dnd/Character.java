@@ -163,25 +163,9 @@ public class Character {
 	private int attackModifierVersus(Character opponent) {
 		int abilityModifier = CharacterClass.ROGUE == myClass ? getDexterityModifier() : getStrengthModifier();
 		return abilityModifier +
-				getAttackRollBonusForLevel() +
+				myClass.levelAttackBonus(level) +
 				getAttackRollBonusAgainst(opponent) +
 				getEquipmentAttackModifiers(opponent);
-	}
-
-	private int getAttackRollBonusForLevel() {
-		switch (myClass) {
-			case MONK:
-				int bonus = 0;
-				for (int i = 1; i <= level; i++)
-					if (i % 2 == 0 || i % 3 == 0)
-						bonus++;
-				return bonus;
-			case FIGHTER:
-			case PALADIN:
-				return level - 1;
-			default:
-				return level / 2;
-		}
 	}
 
 	private int getAttackRollBonusAgainst(Character opponent) {

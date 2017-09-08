@@ -14,8 +14,8 @@ public class ElvenLongsword extends Weapon {
     }
 
     @Override
-    public int attackModifier(Character wielder, Character opponent) {
-        return calcRacialBonus(wielder, opponent);
+    public int attackModifier(Character wielder, Character defender) {
+        return calcRacialBonus(wielder, defender);
     }
 
     private int calcRacialBonus(Character wielder, Character defender) {

@@ -9,9 +9,9 @@ public class Nunchucks extends Weapon {
     }
 
     @Override
-    public int attackModifier(Character wielder, Character opponent) {
+    public int attackModifier(Character wielder, Character defender) {
         if (wielder.getCharacterClass() == CharacterClass.MONK)
             return 0;
-        else return super.attackModifier(wielder, opponent);
+        else return super.attackModifier(wielder, defender);
     }
 }

@@ -23,7 +23,7 @@ public abstract class Weapon {
         return bonusDamage;
     }
 
-    public int attackModifier(Character wielder, Character opponent){
+    public int attackModifier(Character wielder, Character defender){
         return attackModifier;
     }
 
