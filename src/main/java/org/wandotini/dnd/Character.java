@@ -23,19 +23,16 @@ public class Character {
 	private int maxHitPoints = 5;
 	private int xp = 0;
 	private int level = 1;
-	private CharacterClass myClass = CharacterClass.UNCLASSED; // TODO get rid of?
+	private CharacterClass myClass = CharacterClass.UNCLASSED;
 	private CharacterRace race = CharacterRace.HUMAN;
 	private Weapon weapon = new Unarmed();
 	private Armor armor = new NoArmor();
 	private Shield shield = new NoShield();
 	private List<Item> items = new ArrayList<Item>();
 
-	// TODO consolidate constructors?
-	public Character(){
-		initStats();
-	}
-
-	public Character(int strength, int dexterity, int constitution, int wisdom, int intelligence, int charisma) {
+	public Character(CharacterRace race, CharacterClass myClass, int strength, int dexterity, int constitution, int wisdom, int intelligence, int charisma) {
+		this.race = race;
+		this.myClass = myClass;
 		this.strength = strength;
 		this.dexterity = dexterity;
 		this.constitution = constitution;
@@ -49,38 +46,6 @@ public class Character {
 		initHitPoints();
 		initAlignment();
 		initArmorClass();
-	}
-
-	public Character(CharacterClass myClass, int strength, int dexterity, int constitution, int wisdom, int intelligence, int charisma) {
-	    this.myClass = myClass;
-        this.strength = strength;
-        this.dexterity = dexterity;
-        this.constitution = constitution;
-        this.wisdom = wisdom;
-        this.intelligence = intelligence;
-        this.charisma = charisma;
-		initStats();
-    }
-
-    public Character(CharacterClass characterClass) {
-	    myClass = characterClass;
-		initStats();
-	}
-
-	public Character(CharacterRace race) {
-		this.race = race;
-		initStats();
-	}
-
-	public Character(CharacterRace race, int strength, int dexterity, int constitution, int wisdom, int intelligence, int charisma) {
-		this.race = race;
-		this.strength = strength;
-		this.dexterity = dexterity;
-		this.constitution = constitution;
-		this.wisdom = wisdom;
-		this.intelligence = intelligence;
-		this.charisma = charisma;
-		initStats();
 	}
 
 	private void initAlignment() {
