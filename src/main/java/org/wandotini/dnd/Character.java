@@ -5,7 +5,6 @@ import org.wandotini.dnd.armor.NoArmor;
 import org.wandotini.dnd.items.Item;
 import org.wandotini.dnd.weapons.Unarmed;
 import org.wandotini.dnd.weapons.Weapon;
-import org.wandotini.util.StreamUtils;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -109,7 +108,7 @@ public class Character {
     }
 
 	private int getEquipmentArmorClassBonuses() {
-		return armor.armorClassBonus(this) +
+		return armor.armorClassBonus() +
 				shield.armorClassBonus() +
 				items.stream()
 						.map(Item::armorClassBonus)
@@ -146,7 +145,7 @@ public class Character {
 
 	private int getEquipmentAttackModifiers(Character opponent) {
 		return weapon.attackModifier(this, opponent) +
-				armor.attackModifier(this) +
+				armor.attackModifier() +
 				shield.attackModifier(this) +
 				items.stream()
 						.map(item -> item.attackModifier(this, opponent))
@@ -312,6 +311,7 @@ public class Character {
 		if (! armor.canBeEquippedBy(this))
 			throw new IllegalStateException();
 		this.armor = armor;
+		this.armor.setWearer(this);
 	}
 
 	public void equip(Shield shield) {

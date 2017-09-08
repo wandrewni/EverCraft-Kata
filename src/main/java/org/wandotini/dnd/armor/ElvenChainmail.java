@@ -5,8 +5,8 @@ import org.wandotini.dnd.CharacterRace;
 
 public class ElvenChainmail extends Armor {
     @Override
-    public int armorClassBonus(Character player) {
-        return isElf(player) ? 8 : 5;
+    public int armorClassBonus() {
+        return wornByElf() ? 8 : 5;
     }
 
     @Override
@@ -20,11 +20,11 @@ public class ElvenChainmail extends Armor {
     }
 
     @Override
-    public int attackModifier(Character player) {
-        return isElf(player) ? 1 : 0;
+    public int attackModifier() {
+        return wornByElf() ? 1 : 0;
     }
 
-    private boolean isElf(Character player) {
-        return player.getRace() == CharacterRace.ELF;
+    private boolean wornByElf() {
+        return wearer.getRace() == CharacterRace.ELF;
     }
 }

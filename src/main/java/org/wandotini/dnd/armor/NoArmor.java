@@ -3,7 +3,7 @@ package org.wandotini.dnd.armor;
 import org.wandotini.dnd.Character;
 
 public class NoArmor extends Armor {
-    public int armorClassBonus(Character player) {
+    public int armorClassBonus() {
         return 0;
     }
 
@@ -16,7 +16,7 @@ public class NoArmor extends Armor {
     }
 
     @Override
-    public int attackModifier(Character player) {
+    public int attackModifier() {
         return 0;
     }
 }

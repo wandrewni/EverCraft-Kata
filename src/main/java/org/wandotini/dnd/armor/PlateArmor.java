@@ -5,7 +5,7 @@ import org.wandotini.dnd.CharacterClass;
 import org.wandotini.dnd.CharacterRace;
 
 public class PlateArmor extends Armor {
-    public int armorClassBonus(Character player) {
+    public int armorClassBonus() {
         return 8;
     }
 
@@ -19,7 +19,7 @@ public class PlateArmor extends Armor {
     }
 
     @Override
-    public int attackModifier(Character player) {
+    public int attackModifier() {
         return 0;
     }
 }

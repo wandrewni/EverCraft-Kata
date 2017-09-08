@@ -3,7 +3,7 @@ package org.wandotini.dnd.armor;
 import org.wandotini.dnd.Character;
 
 public class LeatherArmorOfDamageReduction extends Armor {
-    public int armorClassBonus(Character player) {
+    public int armorClassBonus() {
         return 2;
     }
 
@@ -16,7 +16,7 @@ public class LeatherArmorOfDamageReduction extends Armor {
     }
 
     @Override
-    public int attackModifier(Character player) {
+    public int attackModifier() {
         return 0;
     }
 }
