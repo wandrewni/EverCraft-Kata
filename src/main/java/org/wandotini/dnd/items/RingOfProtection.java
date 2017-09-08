@@ -13,7 +13,7 @@ public class RingOfProtection extends Item {
     }
 
     @Override
-    public int attackModifier(Character wearer, Character defender) {
+    public int attackModifier(Character defender) {
         return 0;
     }
 }

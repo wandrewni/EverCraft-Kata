@@ -14,7 +14,7 @@ public class BeltOfGiantStrength extends Item {
     }
 
     @Override
-    public int attackModifier(Character wearer, Character defender) {
+    public int attackModifier(Character defender) {
         return 0;
     }
 }

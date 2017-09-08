@@ -24,10 +24,10 @@ public class Character {
 	private int level = 1;
 	private CharacterClass myClass = CharacterClass.UNCLASSED;
 	private CharacterRace race = CharacterRace.HUMAN;
-	private Weapon weapon = new Unarmed();
-	private Armor armor = new NoArmor();
-	private Shield shield = new NoShield();
-	private List<Item> items = new ArrayList<Item>();
+	private Weapon weapon;
+	private Armor armor;
+	private Shield shield;
+	private List<Item> items = new ArrayList<>();
 
 	public Character(CharacterRace race, CharacterClass myClass, int strength, int dexterity, int constitution, int wisdom, int intelligence, int charisma) {
 		this.race = race;
@@ -39,6 +39,13 @@ public class Character {
 		this.intelligence = intelligence;
 		this.charisma = charisma;
 		initStats();
+		initWearables();
+	}
+
+	private void initWearables() {
+		equip(new Unarmed());
+		equip(new NoArmor());
+		equip(new NoShield());
 	}
 
 	private void initStats() {
@@ -146,9 +153,9 @@ public class Character {
 	private int getEquipmentAttackModifiers(Character opponent) {
 		return weapon.attackModifier(opponent) +
 				armor.attackModifier() +
-				shield.attackModifier(this) +
+				shield.attackModifier() +
 				items.stream()
-						.map(item -> item.attackModifier(this, opponent))
+						.map(item -> item.attackModifier(opponent))
 						.reduce(0, add());
 	}
 
@@ -305,21 +312,23 @@ public class Character {
 
 	public void equip(Weapon weapon) {
 		this.weapon = weapon;
-		this.weapon.setWielder(this);
+		weapon.setWielder(this);
 	}
 
 	public void equip(Armor armor) {
 		if (! armor.canBeEquippedBy(this))
 			throw new IllegalStateException();
 		this.armor = armor;
-		this.armor.setWearer(this);
+		armor.setWearer(this);
 	}
 
 	public void equip(Shield shield) {
 		this.shield = shield;
+		shield.setWearer(this);
 	}
 
 	public void equip(Item item) {
 		this.items.add(item);
+		item.setWearer(this);
 	}
 }
